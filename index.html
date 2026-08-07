@@ -517,6 +517,15 @@ const I18N = {
     alertPendingMsg:"registered employee(s) have not started the exam yet.",
     alertExpiringMsg:"certificate(s) expiring within 30 days.",
     footerVersionLbl:"Version", showHidden:"Show hidden rows",
+    forgotPassword:"Forgot password?", resetPasswordTitle:"Reset Password",
+    resetStep1Desc:"Enter the email you signed up with. We'll email you a 6-digit verification code.",
+    sendCode:"Send Code", resetStep2Desc:"Enter the code we emailed you and choose a new password.",
+    verificationCode:"Verification code", newPassword:"New password", confirmNewPassword:"Confirm new password",
+    resetPasswordBtn:"Reset Password", resendCode:"Resend code",
+    errResetNoAccount:"No account found with that email.", errResetSendFail:"Could not send the code. Please try again.",
+    errResetCodeInvalid:"Incorrect or expired code.", resetSuccessMsg:"Password reset successfully. You can now sign in.",
+    resetRequiresSheet:"Password reset requires an administrator to connect Google Sheet Sync first. Please contact your administrator.",
+    sending:"Sending...", verifying:"Verifying...",
   },
   ar:{
     brandTitle:"مستشفى الأوغستا فيكتوريا", brandSub:"تدريب إدارة المرافق والسلامة",
@@ -595,6 +604,15 @@ const I18N = {
     alertPendingMsg:"موظف مسجّل لم يبدأ الاختبار بعد.",
     alertExpiringMsg:"شهادة ستنتهي خلال 30 يوم.",
     footerVersionLbl:"الإصدار", showHidden:"إظهار الصفوف المخفية",
+    forgotPassword:"نسيت كلمة المرور؟", resetPasswordTitle:"إعادة تعيين كلمة المرور",
+    resetStep1Desc:"أدخل البريد الإلكتروني الذي سجّلت به. سنرسل لك رمز تحقق مكوّن من 6 أرقام.",
+    sendCode:"إرسال الرمز", resetStep2Desc:"أدخل الرمز المرسل إلى بريدك واختر كلمة مرور جديدة.",
+    verificationCode:"رمز التحقق", newPassword:"كلمة المرور الجديدة", confirmNewPassword:"تأكيد كلمة المرور الجديدة",
+    resetPasswordBtn:"إعادة تعيين كلمة المرور", resendCode:"إعادة إرسال الرمز",
+    errResetNoAccount:"لا يوجد حساب بهذا البريد الإلكتروني.", errResetSendFail:"تعذّر إرسال الرمز. حاول مرة أخرى.",
+    errResetCodeInvalid:"الرمز غير صحيح أو منتهي الصلاحية.", resetSuccessMsg:"تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
+    resetRequiresSheet:"استعادة كلمة المرور تتطلب ربط Google Sheet Sync من قبل المسؤول أولاً. الرجاء التواصل مع المسؤول.",
+    sending:"جارٍ الإرسال...", verifying:"جارٍ التحقق...",
   }
 };
 let LANG = 'en';
@@ -802,6 +820,17 @@ async function postToSheet(type, data){
     });
   }catch(e){ console.error('Google Sheet sync failed', e); }
 }
+async function postToSheetAwait(type, data){
+  if(!STATE.gasUrl) return { ok:false, error:'not_connected' };
+  try{
+    const res = await fetch(STATE.gasUrl, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ type, data })
+    });
+    return await res.json();
+  }catch(e){ console.error('Google Sheet request failed', e); return { ok:false, error:String(e) }; }
+}
 async function loadGasConfig(){
   STATE.gasUrl = DEFAULT_GAS_URL || '';
   try{
@@ -883,6 +912,7 @@ function renderSignInForm(){
       <input type="password" id="siPass" placeholder="••••••••" autocomplete="current-password">
       <div class="err-text" id="siErr"></div>
       <button class="btn btn-primary btn-block" style="margin-top:6px" onclick="submitSignIn()">${ic('next')} ${t('signIn')}</button>
+      <p class="switch-note"><a onclick="openForgotPassword()">${t('forgotPassword')}</a></p>
       <p class="switch-note">${t('noAccountYet')} <a onclick="switchLoginTab('signup')">${t('signUp')}</a></p>
       <p class="note-mini">${t('deviceNote')}</p>
     </div>`;
@@ -932,6 +962,87 @@ function renderAdminPortal(){
       <p class="switch-note"><a onclick="switchLoginTab('signin')">${ic('back')} ${t('backToEmployee')}</a></p>
     </div>`;
 }
+/* ============================= FORGOT PASSWORD ============================= */
+function openForgotPassword(){
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay'; overlay.id='fpOverlay';
+  overlay.onclick = (e)=>{ if(e.target===overlay) closeForgotPassword(); };
+  overlay.innerHTML = `
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-head">
+        <h3>${ic('users')} ${t('resetPasswordTitle')}</h3>
+        <button class="row-ic-btn" onclick="closeForgotPassword()" title="${t('close')}">${ICONS.x}</button>
+      </div>
+      <div class="modal-body" id="fpBody"></div>
+    </div>`;
+  document.body.appendChild(overlay);
+  renderForgotStep1();
+}
+function closeForgotPassword(){ const el=document.getElementById('fpOverlay'); if(el) el.remove(); }
+function renderForgotStep1(prefillEmail){
+  const body = document.getElementById('fpBody');
+  if(!body) return;
+  if(!STATE.gasUrl){
+    body.innerHTML = `<p style="font-size:13px;color:var(--muted);line-height:1.7;">${t('resetRequiresSheet')}</p>`;
+    return;
+  }
+  body.innerHTML = `
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin-top:0;">${t('resetStep1Desc')}</p>
+    <label>${t('email')}</label>
+    <input type="text" id="fpEmail" value="${escapeHtml(prefillEmail||'')}" placeholder="name@avh.org">
+    <div class="err-text" id="fpErr1"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="submitRequestReset()">${ic('next')} ${t('sendCode')}</button>`;
+}
+async function submitRequestReset(){
+  const email = val('fpEmail').toLowerCase();
+  const err = document.getElementById('fpErr1');
+  if(!email){ err.textContent = t('errFillFields'); return; }
+  err.textContent = t('sending');
+  const res = await postToSheetAwait('requestReset', { email });
+  if(res && res.ok){
+    renderForgotStep2(email);
+  } else {
+    err.textContent = (res && res.error==='no_account')? t('errResetNoAccount') : t('errResetSendFail');
+  }
+}
+function renderForgotStep2(email){
+  const body = document.getElementById('fpBody');
+  if(!body) return;
+  body.innerHTML = `
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin-top:0;">${t('resetStep2Desc')}</p>
+    <label>${t('verificationCode')}</label>
+    <input type="text" id="fpCode" maxlength="6" placeholder="123456">
+    <label>${t('newPassword')}</label>
+    <input type="password" id="fpNewPass" autocomplete="new-password">
+    <label>${t('confirmNewPassword')}</label>
+    <input type="password" id="fpNewPass2" autocomplete="new-password">
+    <div class="err-text" id="fpErr2"></div>
+    <button class="btn btn-gold btn-block" style="margin-top:8px" onclick="submitConfirmReset('${email}')">${ic('check')} ${t('resetPasswordBtn')}</button>
+    <p class="switch-note"><a onclick="renderForgotStep1('${email}')">${t('resendCode')}</a></p>`;
+}
+async function submitConfirmReset(email){
+  const code = val('fpCode'), p1 = val('fpNewPass'), p2 = val('fpNewPass2');
+  const err = document.getElementById('fpErr2');
+  if(!code || !p1 || !p2){ err.textContent = t('errFillFields'); return; }
+  if(p1.length < 4){ err.textContent = t('errPwShort'); return; }
+  if(p1 !== p2){ err.textContent = t('errPwMatch'); return; }
+  err.textContent = t('verifying');
+  const passwordHash = await hashPassword(p1);
+  const res = await postToSheetAwait('confirmReset', { email, code, passwordHash });
+  if(res && res.ok){
+    try{
+      const acct = { name:res.name, id:res.id, department:res.department, email, passwordHash };
+      await Store.set('account:'+email, JSON.stringify(acct), true);
+    }catch(e){}
+    closeForgotPassword();
+    STATE.loginTab='signin';
+    render();
+    setTimeout(()=>{ const s=document.getElementById('siErr'); if(s) s.textContent=t('resetSuccessMsg'); s && (s.style.color='var(--success)'); }, 0);
+  } else {
+    err.textContent = t('errResetCodeInvalid');
+  }
+}
+
 function switchLoginTab(tab){ STATE.loginTab = tab; render(); }
 function val(id){ const el=document.getElementById(id); return el? el.value.trim() : ''; }
 async function hashPassword(pw){
@@ -958,6 +1069,7 @@ async function submitSignUp(){
   const passwordHash = await hashPassword(pw);
   const account = { email, first, middle, last, name:fullName, id:empId, department:dept, passwordHash, createdAt:fmtDate() };
   try{ await Store.set('account:'+email, JSON.stringify(account), true); }catch(e){}
+  postToSheet('account', { email, name:fullName, id:empId, department:dept, passwordHash });
   STATE.role='employee';
   STATE.user = { name:fullName, id:empId, dept, email };
   await restoreProgress();
@@ -971,13 +1083,29 @@ async function submitSignIn(){
   const email=val('siEmail').toLowerCase(), pw=val('siPass');
   const err = document.getElementById('siErr');
   if(!email || !pw){ err.textContent = t('errFillFields'); return; }
-  const rec = await Store.get('account:'+email, true);
-  if(!rec || !rec.value){ err.textContent = t('errNoAccountDevice'); return; }
-  let account; try{ account = JSON.parse(rec.value); }catch(e){ err.textContent = t('errNoAccountDevice'); return; }
   const hash = await hashPassword(pw);
-  if(hash !== account.passwordHash){ err.textContent = t('errBadPassword'); return; }
+  const rec = await Store.get('account:'+email, true);
+  let account = null;
+  if(rec && rec.value){
+    try{ account = JSON.parse(rec.value); }catch(e){ account = null; }
+  }
+  if(account && hash === account.passwordHash){
+    return finishSignIn(account, email);
+  }
+  // fall back to server-side verification (covers cross-device sign-in / after a password reset)
+  if(STATE.gasUrl){
+    const res = await postToSheetAwait('verifyLogin', { email, passwordHash: hash });
+    if(res && res.ok){
+      const verified = { name:res.name, id:res.id, department:res.department, email, passwordHash:hash };
+      try{ await Store.set('account:'+email, JSON.stringify(verified), true); }catch(e){}
+      return finishSignIn(verified, email);
+    }
+  }
+  err.textContent = account ? t('errBadPassword') : t('errNoAccountDevice');
+}
+async function finishSignIn(account, email){
   STATE.role='employee';
-  STATE.user = { name:account.name, id:account.id, dept:account.department, email:account.email };
+  STATE.user = { name:account.name, id:account.id, dept:account.department, email:account.email||email };
   await restoreProgress();
   await Store.set('session:current', email, true);
   STATE.screen='empHome';
@@ -1485,14 +1613,14 @@ function renderAdminDash(){
   </div>
 
   <div class="chart-grid">
-    <div class="glass-card chart-card"><h3>${t('chartDeptScoreTitle')}</h3><canvas id="chartDeptScore"></canvas></div>
-    <div class="glass-card chart-card"><h3>${t('chartPassFailTitle')}</h3><canvas id="chartPassFail"></canvas></div>
+    <div class="glass-card chart-card"><h3>${t('chartDeptScoreTitle')}</h3>${stats.total? `<canvas id="chartDeptScore"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
+    <div class="glass-card chart-card"><h3>${t('chartPassFailTitle')}</h3>${(stats.total+stats.pending)? `<canvas id="chartPassFail"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
   </div>
   <div class="chart-grid">
-    <div class="glass-card chart-card"><h3>${t('chartDeptPieTitle')}</h3><canvas id="chartDeptPie"></canvas></div>
-    <div class="glass-card chart-card"><h3>${t('chartMonthlyTitle')}</h3><canvas id="chartMonthly"></canvas></div>
+    <div class="glass-card chart-card"><h3>${t('chartDeptPieTitle')}</h3>${STATE.adminEmployees.length? `<canvas id="chartDeptPie"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
+    <div class="glass-card chart-card"><h3>${t('chartMonthlyTitle')}</h3>${stats.total? `<canvas id="chartMonthly"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
   </div>
-  <div class="glass-card chart-card" style="margin-bottom:20px;"><h3>${t('chartHistTitle')}</h3><canvas id="chartHist" style="max-height:220px;"></canvas></div>
+  <div class="glass-card chart-card" style="margin-bottom:20px;"><h3>${t('chartHistTitle')}</h3>${stats.total? `<canvas id="chartHist" style="max-height:220px;"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
 
   <div class="two-col">
     <div class="glass-card panel-inner">

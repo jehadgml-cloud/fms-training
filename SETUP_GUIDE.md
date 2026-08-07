@@ -22,6 +22,12 @@
 
 **ملاحظة:** أي تعديل لاحق على كود الـ Apps Script يتطلب عمل **New deployment** جديد (أو Manage deployments ← Edit) حتى يُطبَّق.
 
+**تحديث جديد:** الكود الحالي يرسل إيميلات فعلية (رمز استعادة كلمة المرور) عبر حساب Google نفسه المسجّل فيه الـ Apps Script. عند إعادة النشر لأول مرة بعد هذا التحديث، ستحتاج للموافقة على صلاحية إضافية (Gmail / إرسال بريد) بنفس خطوات الموافقة السابقة.
+
+---
+
+**Update:** the current code sends real emails (password reset codes) using the same Google account the Apps Script is running under. The first time you redeploy after this update, you'll be asked to approve one more permission (Gmail / send email) using the same authorization steps as before.
+
 ---
 
 ## Steps (English)

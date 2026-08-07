@@ -9,36 +9,30 @@
  * received:
  *   - "Employees": one row per registered employee (upserted by ID)
  *   - "Results":   one row per exam attempt (every attempt kept)
- * -----------------------------------------------------------
- */
-
-/**
- * AVH FMS Training LMS — Google Sheets Backend
- * -----------------------------------------------------------
- * Deploy this as a Web App (see setup guide) and paste the
- * resulting URL into the LMS admin dashboard: Settings (gear
- * icon) -> Google Sheet Sync -> Apps Script Web App URL.
- *
- * It creates two sheets automatically the first time data is
- * received:
- *   - "Employees": one row per registered employee (upserted by ID)
- *   - "Results":   one row per exam attempt (every attempt kept)
  *
  * When an employee PASSES, this script also auto-generates a
  * certificate PDF, saves it into a Google Drive folder named
  * "AVH FMS Certificates" (created automatically the first time),
  * and writes a shareable link into the "Certificate Link" column.
  *
- * NOTE: adding certificate generation uses the Slides and Drive
- * services, so after pasting this updated code you must create a
- * NEW deployment version (Deploy -> Manage deployments -> Edit ->
- * New version) and re-authorize the extra permissions when prompted.
+ * It also manages employee login accounts (email + password hash)
+ * in an "Accounts" sheet, and supports email-based password reset:
+ * a 6-digit code is emailed via MailApp and logged in a
+ * "PasswordResets" sheet (valid for 30 minutes).
+ *
+ * NOTE: this version uses Slides, Drive, and Gmail (MailApp) services,
+ * so after pasting this updated code you must create a NEW deployment
+ * version (Deploy -> Manage deployments -> Edit -> New version) and
+ * re-authorize the extra permissions when prompted.
  * -----------------------------------------------------------
  */
 
 const EMP_SHEET_NAME = 'Employees';
 const RESULT_SHEET_NAME = 'Results';
 const CERT_FOLDER_NAME = 'AVH FMS Certificates';
+const ACCOUNTS_SHEET_NAME = 'Accounts';
+const RESETS_SHEET_NAME = 'PasswordResets';
+const RESET_CODE_VALID_MINUTES = 30;
 
 function doPost(e) {
   try {
@@ -72,14 +66,105 @@ function doPost(e) {
         body.data.passed ? 'Pass' : 'Fail', body.data.date,
         body.data.certId || '', certLink, JSON.stringify(body.data.answers || [])
       ]);
+    } else if (body.type === 'account') {
+      const sh = getOrCreateSheet(ss, ACCOUNTS_SHEET_NAME,
+        ['Email', 'Name', 'Employee ID', 'Department', 'Password Hash', 'Updated At']);
+      upsertRowByKey(sh, String(body.data.email).toLowerCase(), [
+        String(body.data.email).toLowerCase(), body.data.name, body.data.id,
+        body.data.department, body.data.passwordHash, new Date().toISOString()
+      ]);
+      return jsonOut({ ok: true });
+    } else if (body.type === 'verifyLogin') {
+      return jsonOut(verifyLogin(body.data));
+    } else if (body.type === 'requestReset') {
+      return jsonOut(requestPasswordReset(body.data));
+    } else if (body.type === 'confirmReset') {
+      return jsonOut(confirmPasswordReset(body.data));
     }
 
-    return ContentService.createTextOutput(JSON.stringify({ ok: true }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ ok: true });
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ ok: false, error: String(err) });
   }
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ---------------- Accounts / authentication ---------------- */
+function findAccountRow(sh, email) {
+  const data = sh.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).toLowerCase() === String(email).toLowerCase()) return { rowIndex: i + 1, row: data[i] };
+  }
+  return null;
+}
+
+function verifyLogin(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(ACCOUNTS_SHEET_NAME);
+  if (!sh) return { ok: false, error: 'no_accounts' };
+  const found = findAccountRow(sh, data.email);
+  if (!found) return { ok: false, error: 'no_account' };
+  const [email, name, id, department, passwordHash] = found.row;
+  if (String(passwordHash) !== String(data.passwordHash)) return { ok: false, error: 'bad_password' };
+  return { ok: true, name: name, id: id, department: department };
+}
+
+function requestPasswordReset(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const accSh = ss.getSheetByName(ACCOUNTS_SHEET_NAME);
+  if (!accSh) return { ok: false, error: 'no_account' };
+  const found = findAccountRow(accSh, data.email);
+  if (!found) return { ok: false, error: 'no_account' };
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const sh = getOrCreateSheet(ss, RESETS_SHEET_NAME, ['Email', 'Code', 'Created At', 'Used']);
+  sh.appendRow([String(data.email).toLowerCase(), code, new Date().toISOString(), 'NO']);
+
+  const name = found.row[1] || '';
+  const subject = 'AVH FMS Training — Password Reset Code';
+  const bodyText = 'Hello ' + name + ',\n\n' +
+    'Your password reset code for the AVH Facility Management & Safety Training platform is:\n\n' +
+    code + '\n\n' +
+    'This code is valid for ' + RESET_CODE_VALID_MINUTES + ' minutes. If you did not request this, you can ignore this email.\n\n' +
+    '— Augusta Victoria Hospital, Nursing Education & Safety Committee';
+  try {
+    MailApp.sendEmail(data.email, subject, bodyText);
+  } catch (mailErr) {
+    return { ok: false, error: 'mail_failed: ' + mailErr };
+  }
+  return { ok: true };
+}
+
+function confirmPasswordReset(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(RESETS_SHEET_NAME);
+  if (!sh) return { ok: false, error: 'no_code' };
+  const values = sh.getDataRange().getValues();
+  const now = new Date();
+  let matchRow = -1;
+  for (let i = values.length - 1; i >= 1; i--) { // most recent first
+    const [email, code, createdAt, used] = values[i];
+    if (String(email).toLowerCase() === String(data.email).toLowerCase() && String(code) === String(data.code) && String(used) === 'NO') {
+      const created = new Date(createdAt);
+      const minutesElapsed = (now - created) / 60000;
+      if (minutesElapsed <= RESET_CODE_VALID_MINUTES) { matchRow = i + 1; }
+      break;
+    }
+  }
+  if (matchRow === -1) return { ok: false, error: 'invalid_or_expired' };
+
+  sh.getRange(matchRow, 4).setValue('YES'); // mark code as used
+
+  const accSh = ss.getSheetByName(ACCOUNTS_SHEET_NAME);
+  const found = findAccountRow(accSh, data.email);
+  if (!found) return { ok: false, error: 'no_account' };
+  accSh.getRange(found.rowIndex, 5).setValue(data.passwordHash); // Password Hash column
+  accSh.getRange(found.rowIndex, 6).setValue(new Date().toISOString()); // Updated At column
+
+  return { ok: true, name: found.row[1], id: found.row[2], department: found.row[3] };
 }
 
 /**
