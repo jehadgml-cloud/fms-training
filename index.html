@@ -241,23 +241,38 @@
   /* ---------- Certificate ---------- */
   .cert-outer{ background:#fff; border-radius:22px; box-shadow:var(--shadow); padding:30px; }
   .cert{
-    border:3px solid var(--gold); border-radius:16px; padding:44px; position:relative; overflow:hidden;
+    position:relative; overflow:hidden; aspect-ratio:297/210; width:100%; margin:0 auto;
     background:
-      radial-gradient(500px 250px at 0% 0%, rgba(15,122,114,.06), transparent 60%),
-      radial-gradient(500px 250px at 100% 100%, rgba(201,162,39,.10), transparent 60%),
-      #fff;
-    text-align:center;
+      radial-gradient(circle at 15% 15%, rgba(0,0,0,.015) 0, transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(0,0,0,.015) 0, transparent 40%),
+      #F7F6F2;
+    box-shadow:0 0 0 1px var(--line);
+    padding:5.2% 6%;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    font-family:'Manrope',serif;
   }
-  .cert::before, .cert::after{ content:''; position:absolute; width:120px;height:120px; border:2px solid var(--gold); opacity:.35; border-radius:50%;}
-  .cert::before{ top:-60px; left:-60px; } .cert::after{ bottom:-60px; right:-60px; }
-  .cert-seal{ width:74px;height:74px; margin:0 auto 10px; border-radius:50%; background:conic-gradient(from 180deg, var(--gold), var(--teal-light), var(--gold)); display:flex; align-items:center;justify-content:center;}
-  .cert-seal .in{ width:60px;height:60px;border-radius:50%; background:#fff; display:flex;align-items:center;justify-content:center;}
-  .cert-seal svg{ width:28px;height:28px; stroke:var(--navy); }
-  .cert h1{ font-size:14px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin:0;}
-  .cert h2{ font-size:28px; margin:10px 0 4px; color:var(--navy); }
-  .cert .name{ font-size:32px; font-weight:800; color:var(--navy); margin:18px 0 4px; font-family:'Space Grotesk';}
-  .cert .line{ width:220px; height:2px; background:var(--line); margin:0 auto 16px; }
-  .cert p.desc{ max-width:520px; margin:0 auto 22px; color:var(--muted); font-size:14px; line-height:1.7;}
+  html[dir="rtl"] .cert{ font-family:'Cairo',serif; }
+  .cert-corner-leaf{ position:absolute; top:-6%; inset-inline-end:-4%; width:26%; opacity:.9; }
+  .cert-corner-dove{ position:absolute; bottom:-4%; inset-inline-start:-3%; width:20%; opacity:.95; }
+  .cert-logo-row{ display:flex; align-items:center; gap:12px; align-self:flex-start; }
+  .cert-logo-row img{ height:44px; }
+  .cert-title{ font-size:2.6em; font-weight:800; color:var(--navy); letter-spacing:.5px; margin:2.2% 0 1.4%; text-transform:uppercase; }
+  .cert-sub1{ font-size:1.05em; color:#2b2b2b; margin:0 0 .6%; }
+  .cert-name{ font-size:2.3em; font-weight:800; color:var(--navy); margin:.2% 0 1%; font-family:'Space Grotesk','Cairo',serif; }
+  .cert-body-line{ font-size:1em; color:#2b2b2b; line-height:1.75; max-width:82%; }
+  .cert-body-line b{ color:#1a1a1a; }
+  .cert-sign-row{ display:flex; justify-content:space-between; align-items:flex-end; width:100%; margin-top:auto; padding-top:2.5%; gap:20px; }
+  .cert-sign{ flex:1; max-width:300px; text-align:center; }
+  .cert-sign .sig-name{ font-family:'Space Grotesk',cursive; font-size:1.05em; color:var(--navy); font-style:italic; }
+  .cert-sign .sig-title{ font-size:.72em; color:#333; margin-top:2px; }
+  .cert-sign .sig-org{ font-size:.68em; color:#555; }
+  .cert-sign .sig-tel{ font-size:.68em; color:#555; }
+  .cert-sign .sig-line{ border-top:1.3px solid #555; margin-top:6px; padding-top:5px; font-size:.78em; font-weight:700; color:var(--navy); }
+  .cert-badges{ display:flex; align-items:center; gap:10px; }
+  .cert-badge{ width:46px;height:46px;border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; text-align:center; line-height:1.1; border:1.5px solid; flex:none; }
+  .cert-badge.gold{ background:conic-gradient(from 200deg,#E4C55E,#C9A227,#E4C55E); border-color:#C9A227; color:#4a3a0a; }
+  .cert-badge.iso{ background:#fff; border-color:var(--navy); color:var(--navy); }
+  .cert-badge.leaf75{ background:#fff; border-color:var(--teal); color:var(--teal); }
   .cert-meta{ display:flex; justify-content:center; gap:40px; margin-top:20px; flex-wrap:wrap;}
   .cert-meta div b{ display:block; font-size:14px; } .cert-meta div span{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
   .cert-actions{ display:flex; gap:12px; justify-content:center; margin-top:24px; }
@@ -473,7 +488,15 @@ const I18N = {
     resultPassTitle:"You passed!", resultFailTitle:"Not passed yet", resultDesc:"You scored",
     tryAgain:"Retake Exam", getCertificate:"Get Certificate", backToCourse:"Back to Dashboard",
     certOrgName:"Augusta Victoria Hospital — The Lutheran World Federation", certHeading:"Certificate of Completion",
-    certPresented:"This certifies that", certDesc:"has successfully completed the Facility Management & Safety (FMS) Training Program, demonstrating competency in fire safety, emergency response codes, evacuation procedures, hazardous materials management and radiation protection.",
+    certPresented:"This is to certify that", certDesc:"Has successfully completed the training and passed the examination on:",
+    certCourseTitle:"General Safety Principles, Fire Safety, Radiation Safety, and Emergency Codes",
+    certHours:"This two-hour training is equivalent to 2 Contact Hours of continuing education.",
+    certValidTwoYears:"This certificate is valid for two years from the date of issue.",
+    certValidUntil:"Valid until:", certDateIssueLbl:"Date of Issue:",
+    certSig1Name:"Jihad Hawamdeh", certSig1Title:"Continuing Education Officer",
+    certSig1Org:"Augusta Victoria Hospital — Nursing Continuous Education", certSig1Phone:"Tel: 02–6279911",
+    certSig2Title:"AVH Safety Committee", certSig2Org:"Augusta Victoria Hospital — The Lutheran World Federation",
+    certSig2Phone:"Tel: 02–6279911",
     certDept:"Department", certScore:"Score", certDate:"Date Issued", certId:"Certificate ID",
     downloadPdf:"Download PDF Certificate", backHome:"Back to Dashboard",
     adminTitle:"Admin Dashboard", adminSub:"Training completion, exam results and certificate tracking",
@@ -499,7 +522,7 @@ const I18N = {
     complianceTitle:"Department Compliance", colHeadcount:"Registered", colCompletionRate:"Completion Rate",
     colCertsShort:"Certificates", statusOk:"On Track", statusWarn:"Needs Attention", statusBad:"Needs Follow-up",
     leaderboardTitle:"Top Performers", rankCol:"Rank",
-    expiringTitle:"Certificates Expiring Soon (365-day validity)", daysLeftLbl:"days left", expiredLbl:"Expired",
+    expiringTitle:"Certificates Expiring Soon (2-year validity)", daysLeftLbl:"days left", expiredLbl:"Expired",
     noExpiring:"No certificates expiring within 30 days.",
     activityTitle:"Recent Activity", actPassed:"passed the exam and earned a certificate", actFailed:"attempted the exam and did not pass",
     actRegistered:"registered as a new employee", noActivity:"No recent activity yet.",
@@ -560,7 +583,15 @@ const I18N = {
     resultPassTitle:"لقد نجحت!", resultFailTitle:"لم تنجح بعد", resultDesc:"حصلت على",
     tryAgain:"إعادة الاختبار", getCertificate:"احصل على الشهادة", backToCourse:"العودة للوحة التحكم",
     certOrgName:"مستشفى الأوغستا فيكتوريا — الاتحاد اللوثري العالمي", certHeading:"شهادة إتمام الدورة",
-    certPresented:"تشهد هذه الوثيقة بأن", certDesc:"قد أتم/ت بنجاح برنامج تدريب إدارة المرافق والسلامة (FMS)، مثبتاً كفاءته في السلامة من الحريق، رموز الاستجابة للطوارئ، إجراءات الإخلاء، إدارة المواد الخطرة، والحماية من الإشعاع.",
+    certPresented:"تشهد هذه الوثيقة بأن", certDesc:"قد أتم/ت بنجاح التدريب واجتاز/ت الاختبار في:",
+    certCourseTitle:"مبادئ السلامة العامة، السلامة من الحريق، السلامة من الإشعاع، ورموز الطوارئ",
+    certHours:"يعادل هذا التدريب (ساعتين) ساعتَي تعليم مستمر (2 Contact Hours).",
+    certValidTwoYears:"هذه الشهادة صالحة لمدة سنتين من تاريخ الإصدار.",
+    certValidUntil:"صالحة حتى:", certDateIssueLbl:"تاريخ الإصدار:",
+    certSig1Name:"جهاد حوامدة", certSig1Title:"مسؤول التعليم المستمر",
+    certSig1Org:"مستشفى الأوغستا فيكتوريا — تعليم التمريض المستمر", certSig1Phone:"هاتف: 02–6279911",
+    certSig2Title:"لجنة السلامة العامة", certSig2Org:"مستشفى الأوغستا فيكتوريا — الاتحاد اللوثري العالمي",
+    certSig2Phone:"هاتف: 02–6279911",
     certDept:"القسم", certScore:"النتيجة", certDate:"تاريخ الإصدار", certId:"رقم الشهادة",
     downloadPdf:"تحميل الشهادة PDF", backHome:"العودة للوحة التحكم",
     adminTitle:"لوحة تحكم المسؤول", adminSub:"متابعة إتمام التدريب، نتائج الاختبارات، والشهادات",
@@ -586,7 +617,7 @@ const I18N = {
     complianceTitle:"التزام الأقسام بالتدريب", colHeadcount:"المسجّلون", colCompletionRate:"نسبة الإنجاز",
     colCertsShort:"الشهادات", statusOk:"ضمن المسار", statusWarn:"يحتاج متابعة", statusBad:"يحتاج متابعة عاجلة",
     leaderboardTitle:"الأفضل أداءً", rankCol:"الترتيب",
-    expiringTitle:"شهادات قاربت على الانتهاء (صلاحية 365 يوم)", daysLeftLbl:"يوم متبقي", expiredLbl:"منتهية",
+    expiringTitle:"شهادات قاربت على الانتهاء (صلاحية سنتين)", daysLeftLbl:"يوم متبقي", expiredLbl:"منتهية",
     noExpiring:"لا توجد شهادات تنتهي خلال 30 يوم.",
     activityTitle:"النشاط الأخير", actPassed:"نجح بالاختبار وحصل على شهادة", actFailed:"خاض الاختبار ولم ينجح",
     actRegistered:"سجّل كموظف جديد", noActivity:"لا يوجد نشاط بعد.",
@@ -1345,27 +1376,50 @@ function renderExamResult(){
 
 /* ============================= RENDER: CERTIFICATE ============================= */
 function showCertificate(){ STATE.screen='cert'; render(); }
+function certValidUntil(dateStr){
+  const d = dateStr? new Date(dateStr) : new Date();
+  if(isNaN(d.getTime())) return '';
+  d.setFullYear(d.getFullYear()+2);
+  return d.toISOString().slice(0,10);
+}
 function renderCertificate(){
   const r=STATE.examResult||{percent:0,date:fmtDate()};
   const certId = STATE.lastCertId || genCertId(STATE.user.id);
   const deptLabel = deptLabelOf(STATE.user.dept);
+  const validUntil = certValidUntil(r.date);
   return `
   <div class="cert-outer">
     <div class="cert" id="certBlock">
-      <img src="${HOSPITAL_LOGO}" alt="Augusta Victoria Hospital" style="height:34px;margin-bottom:14px;">
-      <div class="cert-seal"><div class="in">${ICONS.award.replace(/currentColor/g,'var(--navy)')}</div></div>
-      <h1>${t('certOrgName')}</h1>
-      <h2>${t('certHeading')}</h2>
-      <p style="color:var(--muted);font-size:13px;margin:6px 0 0;">${t('certPresented')}</p>
-      <div class="name">${escapeHtml(STATE.user.name)}</div>
-      <div class="line"></div>
-      <p class="desc">${t('certDesc')}</p>
-      <div class="cert-meta">
-        <div><b>${escapeHtml(deptLabel)}</b><span>${t('certDept')}</span></div>
-        <div><b>${r.percent}%</b><span>${t('certScore')}</span></div>
-        <div><b>${r.date}</b><span>${t('certDate')}</span></div>
-        <div><b>${certId}</b><span>${t('certId')}</span></div>
+      ${CERT_LEAF_SVG}
+      ${CERT_DOVE_SVG}
+      <div class="cert-logo-row"><img src="${HOSPITAL_LOGO}" alt="Augusta Victoria Hospital"></div>
+      <div class="cert-title">${t('certHeading')}</div>
+      <p class="cert-sub1">${t('certPresented')}</p>
+      <div class="cert-name">${escapeHtml(STATE.user.name)}</div>
+      <p class="cert-body-line">${t('certDesc')}<br><b>${t('certCourseTitle')}</b></p>
+      <p class="cert-body-line" style="margin-top:.8%;">${t('certHours')}<br>${t('certValidTwoYears')} — <b>${t('certValidUntil')} ${validUntil}</b><br>${t('certDateIssueLbl')} ${r.date}</p>
+      <div class="cert-sign-row">
+        <div class="cert-sign">
+          <div class="sig-line">${t('certSig1Name')}<br><span style="font-weight:400;">${t('certSig1Title')}</span></div>
+          <div class="sig-org">${t('certSig1Org')}</div>
+          <div class="sig-tel">${t('certSig1Phone')}</div>
+        </div>
+        <div class="cert-badges">
+          <div class="cert-badge leaf75">75<br>YRS</div>
+          <div class="cert-badge gold">QUALITY<br>SEAL</div>
+          <div class="cert-badge iso">ISO<br>9001</div>
+        </div>
+        <div class="cert-sign">
+          <div class="sig-line">${t('certSig2Title')}<br><span style="font-weight:400;">${escapeHtml(deptLabel)}</span></div>
+          <div class="sig-org">${t('certSig2Org')}</div>
+          <div class="sig-tel">${t('certSig2Phone')}</div>
+        </div>
       </div>
+    </div>
+    <div class="cert-meta">
+      <div><b>${escapeHtml(deptLabel)}</b><span>${t('certDept')}</span></div>
+      <div><b>${r.percent}%</b><span>${t('certScore')}</span></div>
+      <div><b>${certId}</b><span>${t('certId')}</span></div>
     </div>
     <div class="cert-actions">
       <button class="btn btn-gold" onclick="downloadCertPdf('${certId}')">${ic('download')} ${t('downloadPdf')}</button>
@@ -1374,6 +1428,14 @@ function renderCertificate(){
     </div>
   </div>`;
 }
+const CERT_LEAF_SVG = `<svg class="cert-corner-leaf" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="150" cy="30" rx="46" ry="22" fill="#8BC34A" opacity=".85" transform="rotate(-20 150 30)"/>
+  <ellipse cx="110" cy="15" rx="38" ry="18" fill="#0F7A72" opacity=".65" transform="rotate(-35 110 15)"/>
+  <ellipse cx="180" cy="70" rx="34" ry="16" fill="#C9A227" opacity=".5" transform="rotate(10 180 70)"/>
+</svg>`;
+const CERT_DOVE_SVG = `<svg class="cert-corner-dove" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10 150 C 10 90, 60 60, 100 60 C 80 60, 60 40, 60 10 C 100 10, 120 50, 120 80 C 150 80, 170 100, 180 130 C 130 120, 90 130, 60 150 Z" fill="#0F7A72" opacity=".18"/>
+</svg>`;
 function printCertificate(){ window.print(); }
 function printAdminReport(){
   document.body.classList.add('printing-report');
@@ -1384,36 +1446,68 @@ function buildCertPdf({name, department, percent, date, certId, fileId}){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
   const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight();
-  doc.setFillColor(255,255,255); doc.rect(0,0,w,h,'F');
-  doc.setDrawColor(201,162,39); doc.setLineWidth(4); doc.rect(24,24,w-48,h-48);
-  doc.setDrawColor(201,162,39); doc.setLineWidth(1); doc.rect(32,32,w-64,h-64);
-  doc.setTextColor(92,112,122); doc.setFontSize(11);
-  doc.text(t('certOrgName'), w/2, 78, {align:'center'});
-  doc.setTextColor(11,53,80); doc.setFontSize(26); doc.setFont(undefined,'bold');
-  doc.text(t('certHeading'), w/2, 112, {align:'center'});
-  doc.setFont(undefined,'normal'); doc.setFontSize(12); doc.setTextColor(92,112,122);
-  doc.text(t('certPresented'), w/2, 150, {align:'center'});
-  doc.setFont(undefined,'bold'); doc.setFontSize(30); doc.setTextColor(11,53,80);
-  doc.text(String(name), w/2, 188, {align:'center'});
-  doc.setDrawColor(227,233,236); doc.line(w/2-110,204,w/2+110,204);
-  doc.setFont(undefined,'normal'); doc.setFontSize(11); doc.setTextColor(92,112,122);
-  const descLines = doc.splitTextToSize(t('certDesc'), w-260);
-  doc.text(descLines, w/2, 230, {align:'center'});
-  const metaY = 300;
-  const cols = [
-    [department, t('certDept')],
-    [percent+'%', t('certScore')],
-    [date, t('certDate')],
-    [certId, t('certId')],
-  ];
-  const colW = (w-160)/4;
-  cols.forEach((c,idx)=>{
-    const x = 80 + colW*idx + colW/2;
-    doc.setFont(undefined,'bold'); doc.setFontSize(13); doc.setTextColor(11,53,80);
-    doc.text(String(c[0]), x, metaY, {align:'center'});
-    doc.setFont(undefined,'normal'); doc.setFontSize(9); doc.setTextColor(140,150,160);
-    doc.text(String(c[1]), x, metaY+14, {align:'center'});
-  });
+  const validUntil = certValidUntil(date);
+
+  doc.setFillColor(247,246,242); doc.rect(0,0,w,h,'F');
+
+  // decorative corner accents
+  doc.setFillColor(139,195,74); doc.setGState(new doc.GState({opacity:0.35}));
+  doc.ellipse(w-70, 20, 60, 28, 'F');
+  doc.setFillColor(15,122,114); doc.setGState(new doc.GState({opacity:0.22}));
+  doc.circle(40, h-30, 70, 'F');
+  doc.setGState(new doc.GState({opacity:1}));
+
+  try{ doc.addImage(HOSPITAL_LOGO, 'PNG', 40, 30, 130, 33); }catch(e){}
+
+  doc.setTextColor(11,53,80); doc.setFontSize(30); doc.setFont(undefined,'bold');
+  doc.text(t('certHeading').toUpperCase(), w/2, 100, {align:'center'});
+
+  doc.setFont(undefined,'normal'); doc.setFontSize(12); doc.setTextColor(40,40,40);
+  doc.text(t('certPresented'), w/2, 135, {align:'center'});
+
+  doc.setFont(undefined,'bold'); doc.setFontSize(26); doc.setTextColor(11,53,80);
+  doc.text(String(name), w/2, 168, {align:'center'});
+
+  doc.setFont(undefined,'normal'); doc.setFontSize(11.5); doc.setTextColor(40,40,40);
+  let y = 198;
+  const bodyLines = doc.splitTextToSize(t('certDesc'), w-260);
+  doc.text(bodyLines, w/2, y, {align:'center'}); y += bodyLines.length*15+4;
+  doc.setFont(undefined,'bold');
+  doc.text(t('certCourseTitle'), w/2, y, {align:'center'}); y += 20;
+  doc.setFont(undefined,'normal');
+  doc.text(t('certHours'), w/2, y, {align:'center'}); y += 16;
+  doc.text(t('certValidTwoYears') + ' — ' + t('certValidUntil') + ' ' + validUntil, w/2, y, {align:'center'}); y += 16;
+  doc.text(t('certDateIssueLbl') + ' ' + date, w/2, y, {align:'center'});
+
+  // signature lines
+  const sigY = h - 70;
+  doc.setDrawColor(120,120,120); doc.setLineWidth(0.8);
+  doc.line(70, sigY, 260, sigY);
+  doc.setFont(undefined,'bold'); doc.setFontSize(10.5); doc.setTextColor(11,53,80);
+  doc.text(t('certSig1Name'), 165, sigY+14, {align:'center'});
+  doc.setFont(undefined,'normal'); doc.setFontSize(8.5); doc.setTextColor(60,60,60);
+  doc.text(t('certSig1Title'), 165, sigY+26, {align:'center'});
+  doc.text(t('certSig1Org'), 165, sigY+37, {align:'center'});
+  doc.text(t('certSig1Phone'), 165, sigY+48, {align:'center'});
+
+  doc.line(w-260, sigY, w-70, sigY);
+  doc.setFont(undefined,'bold'); doc.setFontSize(10.5); doc.setTextColor(11,53,80);
+  doc.text(t('certSig2Title'), w-165, sigY+14, {align:'center'});
+  doc.setFont(undefined,'normal'); doc.setFontSize(8.5); doc.setTextColor(60,60,60);
+  doc.text(String(department), w-165, sigY+26, {align:'center'});
+  doc.text(t('certSig2Org'), w-165, sigY+37, {align:'center'});
+  doc.text(t('certSig2Phone'), w-165, sigY+48, {align:'center'});
+
+  // badges
+  const badgeY = sigY - 18;
+  doc.setDrawColor(201,162,39); doc.setFillColor(255,255,255);
+  doc.circle(w/2, badgeY, 22, 'FD');
+  doc.setFontSize(7); doc.setTextColor(11,53,80); doc.setFont(undefined,'bold');
+  doc.text('ISO 9001', w/2, badgeY+2, {align:'center'});
+
+  doc.setFontSize(9); doc.setTextColor(140,150,160); doc.setFont(undefined,'normal');
+  doc.text(t('certId')+': '+certId+'   |   '+t('certScore')+': '+percent+'%', w/2, h-24, {align:'center'});
+
   doc.save('AVH_FMS_Certificate_'+(fileId||certId)+'.pdf');
 }
 function downloadCertPdf(certId){
@@ -1508,7 +1602,7 @@ function computeExpiring(){
   const now = new Date();
   return all.map(r=>{
     const issued = new Date(r.date);
-    const daysLeft = isNaN(issued.getTime())? null : Math.round(365 - ((now - issued)/86400000));
+    const daysLeft = isNaN(issued.getTime())? null : Math.round(730 - ((now - issued)/86400000));
     return Object.assign({}, r, { daysLeft });
   }).filter(r=> r.daysLeft!==null && r.daysLeft<=30).sort((a,b)=>a.daysLeft-b.daysLeft);
 }

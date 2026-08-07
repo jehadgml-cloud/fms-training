@@ -191,30 +191,37 @@ function generateCertificatePdf(data) {
   border.getBorder().setWeight(2.5);
 
   addCenteredText(slide, 'AUGUSTA VICTORIA HOSPITAL — THE LUTHERAN WORLD FEDERATION',
-    pageW * 0.1, pageH * 0.10, pageW * 0.8, 20, 10, '#5C707A', true);
-  addCenteredText(slide, 'Certificate of Completion',
-    pageW * 0.1, pageH * 0.19, pageW * 0.8, 36, 22, '#0B3550', true);
-  addCenteredText(slide, 'This certifies that',
-    pageW * 0.1, pageH * 0.32, pageW * 0.8, 18, 11, '#5C707A', false);
+    pageW * 0.1, pageH * 0.08, pageW * 0.8, 18, 9, '#5C707A', true);
+  addCenteredText(slide, 'CERTIFICATE OF COMPLETION',
+    pageW * 0.1, pageH * 0.16, pageW * 0.8, 34, 22, '#0B3550', true);
+  addCenteredText(slide, 'This is to certify that',
+    pageW * 0.1, pageH * 0.29, pageW * 0.8, 16, 10, '#5C707A', false);
   addCenteredText(slide, String(data.name),
-    pageW * 0.1, pageH * 0.38, pageW * 0.8, 34, 22, '#0B3550', true);
+    pageW * 0.1, pageH * 0.35, pageW * 0.8, 30, 20, '#0B3550', true);
   addCenteredText(slide,
-    'has successfully completed the Facility Management & Safety (FMS) Training Program at Augusta Victoria Hospital.',
-    pageW * 0.15, pageH * 0.50, pageW * 0.7, 44, 10, '#5C707A', false);
+    'Has successfully completed the training and passed the examination on:',
+    pageW * 0.12, pageH * 0.47, pageW * 0.76, 16, 9.5, '#333333', false);
+  addCenteredText(slide,
+    'General Safety Principles, Fire Safety, Radiation Safety, and Emergency Codes',
+    pageW * 0.12, pageH * 0.53, pageW * 0.76, 16, 9.5, '#1a1a1a', true);
+  const validUntil = addYears(data.date, 2);
+  addCenteredText(slide,
+    'This two-hour training is equivalent to 2 Contact Hours of continuing education.',
+    pageW * 0.12, pageH * 0.60, pageW * 0.76, 14, 8.5, '#5C707A', false);
+  addCenteredText(slide,
+    'This certificate is valid for two years from the date of issue. Valid until: ' + validUntil,
+    pageW * 0.12, pageH * 0.655, pageW * 0.76, 14, 8.5, '#5C707A', false);
+  addCenteredText(slide, 'Date of Issue: ' + data.date,
+    pageW * 0.12, pageH * 0.71, pageW * 0.76, 14, 8.5, '#5C707A', false);
 
-  const metaY = pageH * 0.70;
-  const colW = (pageW * 0.8) / 4;
-  const cols = [
-    [data.department, 'DEPARTMENT'],
-    [data.percent + '%', 'SCORE'],
-    [data.date, 'DATE ISSUED'],
-    [data.certId, 'CERTIFICATE ID']
-  ];
-  cols.forEach(function (c, idx) {
-    const x = pageW * 0.1 + colW * idx;
-    addCenteredText(slide, String(c[0]), x, metaY, colW, 18, 12, '#0B3550', true);
-    addCenteredText(slide, String(c[1]), x, metaY + 20, colW, 14, 7.5, '#9AA8AE', false);
-  });
+  addCenteredText(slide, 'Jihad Hawamdeh\nContinuing Education Officer\nAugusta Victoria Hospital — Nursing Continuous Education\nTel: 02–6279911',
+    pageW * 0.06, pageH * 0.82, pageW * 0.34, 50, 7.5, '#0B3550', false);
+  addCenteredText(slide, 'AVH Safety Committee\n' + String(data.department) + '\nAugusta Victoria Hospital\nTel: 02–6279911',
+    pageW * 0.60, pageH * 0.82, pageW * 0.34, 50, 7.5, '#0B3550', false);
+
+  const metaY = pageH * 0.94;
+  addCenteredText(slide, data.certId + '   |   Score: ' + data.percent + '%',
+    pageW * 0.1, metaY, pageW * 0.8, 14, 8, '#9AA8AE', false);
 
   pres.saveAndClose();
 
@@ -230,6 +237,13 @@ function generateCertificatePdf(data) {
   DriveApp.getFileById(presId).setTrashed(true); // clean up the temporary Slides file
 
   return pdfFile.getUrl();
+}
+
+function addYears(dateStr, years) {
+  const d = dateStr ? new Date(dateStr) : new Date();
+  if (isNaN(d.getTime())) return '';
+  d.setFullYear(d.getFullYear() + years);
+  return d.toISOString().slice(0, 10);
 }
 
 function addCenteredText(slide, text, x, y, w, h, size, color, bold) {
