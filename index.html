@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Cairo:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root{
     --navy:#0B3550; --navy-dark:#082738; --navy-soft:#123f5c;
@@ -287,6 +288,58 @@
   .bar-row{ display:grid; grid-template-columns:200px 1fr 40px; gap:10px; align-items:center; margin-bottom:10px; font-size:12.5px;}
   .bar-row .track{ height:10px; border-radius:6px; background:var(--bg); overflow:hidden;}
   .bar-row .fill{ height:100%; background:linear-gradient(90deg,var(--teal),var(--gold)); }
+
+  /* ---- Admin v2: glass cards, charts, drawer, timeline ---- */
+  .glass-card{ background:rgba(255,255,255,.85); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.6); border-radius:var(--radius); box-shadow:var(--shadow); transition:.15s; }
+  .stat-card.glass-card:hover{ transform:translateY(-3px); box-shadow:0 14px 30px rgba(11,53,80,.14); }
+  .stat-grid-8{ grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); }
+  .sync-bar{ display:flex; align-items:center; gap:14px; padding:14px 18px; margin-bottom:16px; flex-wrap:wrap; }
+  .sync-dot{ width:12px;height:12px;border-radius:50%; flex:none; }
+  .sync-dot.on{ background:var(--success); box-shadow:0 0 0 4px rgba(30,142,90,.18); }
+  .sync-dot.off{ background:#C9C9C9; }
+  .alert-stack{ display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+  .alert-row{ display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; font-size:12.5px; font-weight:700; }
+  .alert-row svg{ width:16px;height:16px; flex:none; }
+  .alert-row.warn{ background:rgba(201,162,39,.12); color:#8a6d1a; }
+  .alert-row.bad{ background:rgba(192,57,43,.12); color:var(--danger); }
+  .alert-row.info{ background:rgba(15,122,114,.10); color:var(--teal); }
+  .chart-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  @media (max-width:820px){ .chart-grid{ grid-template-columns:1fr; } .two-col{ grid-template-columns:1fr !important; } }
+  .chart-card{ padding:18px 20px; }
+  .chart-card h3{ margin:0 0 12px; font-size:13.5px; }
+  .chart-card canvas{ max-height:260px; }
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .panel-inner{ padding:20px; margin-bottom:16px; }
+  .mini-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .mini-table th{ text-align:start; padding:8px 10px; background:var(--bg); font-size:10.5px; text-transform:uppercase; color:var(--muted); }
+  .mini-table td{ padding:8px 10px; border-bottom:1px solid var(--line); }
+  .tag.warn{ background:rgba(201,162,39,.15); color:#8a6d1a; }
+  .timeline{ display:flex; flex-direction:column; gap:12px; }
+  .tl-row{ display:flex; gap:12px; align-items:flex-start; }
+  .tl-dot{ width:30px;height:30px;border-radius:50%; flex:none; display:flex;align-items:center;justify-content:center; background:var(--bg); }
+  .tl-dot svg{ width:14px;height:14px; stroke:var(--muted); }
+  .tl-dot.passed{ background:rgba(30,142,90,.14); } .tl-dot.passed svg{ stroke:var(--success); }
+  .tl-dot.failed{ background:rgba(192,57,43,.14); } .tl-dot.failed svg{ stroke:var(--danger); }
+  .tl-dot.registered{ background:rgba(15,122,114,.14); } .tl-dot.registered svg{ stroke:var(--teal); }
+  .tl-body{ font-size:13px; line-height:1.5; }
+  .tl-date{ font-size:11px; color:var(--muted); margin-top:2px; }
+  .filters-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .filters-grid input, .filters-grid select{ margin:0; }
+  .row-pass td:first-child{ box-shadow:inset 3px 0 0 var(--success); }
+  .row-fail td:first-child{ box-shadow:inset 3px 0 0 var(--danger); }
+  .admin-foot{ display:flex; align-items:center; gap:10px; justify-content:center; padding:18px; font-size:11px; color:var(--muted); flex-wrap:wrap; text-align:center;}
+  .drawer{ position:fixed; top:0; bottom:0; inset-inline-end:0; width:min(420px,92vw); background:#fff; box-shadow:-10px 0 40px rgba(0,0,0,.25); display:flex; flex-direction:column; animation:fadeIn .25s ease; }
+  .drawer-head{ display:flex; align-items:center; gap:12px; padding:18px 20px; border-bottom:1px solid var(--line); }
+  .drawer-body{ padding:18px 20px; overflow:auto; flex:1; }
+  .drawer-body h4{ font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin:20px 0 10px; }
+  .drawer-stats{ display:flex; gap:10px; }
+  .drawer-stats > div{ flex:1; background:var(--bg); border-radius:10px; padding:12px; text-align:center; }
+  .drawer-stats b{ display:block; font-size:17px; font-family:'Space Grotesk'; }
+  .drawer-stats span{ font-size:10.5px; color:var(--muted); }
+  .cert-mini{ display:flex; align-items:center; justify-content:space-between; gap:14px; background:var(--bg); border-radius:12px; padding:14px; flex-wrap:wrap; }
+  #drawerOverlay{ justify-content:flex-end; align-items:stretch; padding:0; background:rgba(8,20,28,.45); }
+  .verify-card{ max-width:520px; margin:40px auto; background:#fff; border-radius:22px; box-shadow:var(--shadow); padding:36px; border-top:4px solid var(--gold); }
+
   .empty-state{ text-align:center; padding:40px 10px; color:var(--muted); font-size:13.5px;}
   .row-ic-btn{ display:inline-flex; align-items:center; justify-content:center; width:30px;height:30px; border-radius:8px; border:1.5px solid var(--line); background:#fff; margin-inline-end:4px; }
   .row-ic-btn svg{ width:15px;height:15px; stroke:var(--navy); }
@@ -298,6 +351,10 @@
     #certBlock, #certBlock *{ visibility:visible; }
     #certBlock{ position:absolute; top:0; left:0; width:100%; margin:0; border-width:2px; }
     .topbar, footer.foot, .cert-actions{ display:none !important; }
+    body.printing-report *{ visibility:visible; }
+    body.printing-report .topbar, body.printing-report footer.foot,
+    body.printing-report .sync-bar, body.printing-report .filters-grid,
+    body.printing-report .row-ic-btn, body.printing-report .toolbar{ display:none !important; }
   }
   .modal-overlay{ position:fixed; inset:0; background:rgba(8,20,28,.55); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px; }
   .modal-card{ background:#fff; border-radius:18px; max-width:640px; width:100%; max-height:82vh; overflow:auto; box-shadow:0 30px 60px rgba(0,0,0,.35); }
@@ -377,6 +434,7 @@ const ICONS = {
   gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.6-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.6V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.6 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.6 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.6 1z"/></svg>',
   cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19a4.5 4.5 0 000-9 6 6 0 00-11.3-2A5 5 0 007 18h10.5z"/></svg>',
   cloudOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l20 20"/><path d="M17.5 19a4.5 4.5 0 000-9h-.4a6 6 0 00-9.9-3.4M6.2 8.2A5 5 0 007 18h10.5"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
 };
 function ic(name,cls){ return `<span class="${cls||''}">${ICONS[name]||''}</span>`; }
 
@@ -434,6 +492,31 @@ const I18N = {
     gsheetConnected:"Connected to Google Sheet", gsheetNotConnected:"Not connected — saving locally only",
     gsheetTesting:"Connecting...", gsheetError:"Could not connect. Check the URL and deployment access.",
     gsheetSaved:"Connected successfully.", close2:"Close",
+    lastSync:"Last sync", syncNow:"Sync Now", connectedShort:"Google Sheets Connected", notConnectedShort:"Not Connected — Local Only",
+    statTotalExams:"Total Exams", statPending:"Pending Exams", statCertificates:"Certificates Issued", statTodayExams:"Today's Exams",
+    chartDeptScoreTitle:"Average Score by Department (Top 10)", chartPassFailTitle:"Pass vs Fail vs Pending",
+    chartDeptPieTitle:"Employees by Department", chartMonthlyTitle:"Monthly Trends", chartHistTitle:"Score Distribution",
+    complianceTitle:"Department Compliance", colHeadcount:"Registered", colCompletionRate:"Completion Rate",
+    colCertsShort:"Certificates", statusOk:"On Track", statusWarn:"Needs Attention", statusBad:"Needs Follow-up",
+    leaderboardTitle:"Top Performers", rankCol:"Rank",
+    expiringTitle:"Certificates Expiring Soon (365-day validity)", daysLeftLbl:"days left", expiredLbl:"Expired",
+    noExpiring:"No certificates expiring within 30 days.",
+    activityTitle:"Recent Activity", actPassed:"passed the exam and earned a certificate", actFailed:"attempted the exam and did not pass",
+    actRegistered:"registered as a new employee", noActivity:"No recent activity yet.",
+    filtersTitle:"Filters & Search", fltDept:"Department", fltStatus:"Result", fltAll:"All", fltPass:"Pass", fltFail:"Fail",
+    fltScoreMin:"Min score", fltScoreMax:"Max score", fltFrom:"From date", fltTo:"To date", resetFilters:"Reset",
+    colAttempts:"Attempts", hideRow:"Hide", restoreRow:"Restore",
+    drawerAttemptsLbl:"Total attempts", drawerHistoryLbl:"Attempt history", drawerCertLbl:"Certificate",
+    drawerNoCert:"No certificate yet.", drawerOpenDrive:"Open certificate file", drawerScan:"Scan to verify authenticity",
+    exportCsv:"Export CSV", printReport:"Print Report", quickActions:"Quick actions", hiddenRowsPanel:"hidden row(s)",
+    verifyTitle:"Certificate Verification", verifyValidMsg:"This certificate is valid and on record.",
+    verifyInvalidMsg:"We could not verify this certificate ID.", verifySub:"Augusta Victoria Hospital — FMS & Safety Training",
+    verifyBack:"Back to Home",
+    alertNotConnectedMsg:"Google Sheet is not connected — showing locally cached data on this device only.",
+    alertSyncErrorMsg:"Last sync attempt failed — showing cached data.",
+    alertPendingMsg:"registered employee(s) have not started the exam yet.",
+    alertExpiringMsg:"certificate(s) expiring within 30 days.",
+    footerVersionLbl:"Version", showHidden:"Show hidden rows",
   },
   ar:{
     brandTitle:"مستشفى الأوغستا فيكتوريا", brandSub:"تدريب إدارة المرافق والسلامة",
@@ -487,6 +570,31 @@ const I18N = {
     gsheetConnected:"متصل بـ Google Sheet", gsheetNotConnected:"غير متصل — الحفظ محلي فقط",
     gsheetTesting:"جارٍ الاتصال...", gsheetError:"تعذّر الاتصال. تحقق من الرابط وصلاحيات النشر.",
     gsheetSaved:"تم الاتصال بنجاح.", close2:"إغلاق",
+    lastSync:"آخر مزامنة", syncNow:"مزامنة الآن", connectedShort:"متصل بـ Google Sheets", notConnectedShort:"غير متصل — حفظ محلي فقط",
+    statTotalExams:"إجمالي الاختبارات", statPending:"اختبارات معلّقة", statCertificates:"شهادات صادرة", statTodayExams:"اختبارات اليوم",
+    chartDeptScoreTitle:"متوسط النتيجة حسب القسم (أعلى 10)", chartPassFailTitle:"ناجح مقابل راسب ومعلّق",
+    chartDeptPieTitle:"الموظفون حسب القسم", chartMonthlyTitle:"الاتجاهات الشهرية", chartHistTitle:"توزيع الدرجات",
+    complianceTitle:"التزام الأقسام بالتدريب", colHeadcount:"المسجّلون", colCompletionRate:"نسبة الإنجاز",
+    colCertsShort:"الشهادات", statusOk:"ضمن المسار", statusWarn:"يحتاج متابعة", statusBad:"يحتاج متابعة عاجلة",
+    leaderboardTitle:"الأفضل أداءً", rankCol:"الترتيب",
+    expiringTitle:"شهادات قاربت على الانتهاء (صلاحية 365 يوم)", daysLeftLbl:"يوم متبقي", expiredLbl:"منتهية",
+    noExpiring:"لا توجد شهادات تنتهي خلال 30 يوم.",
+    activityTitle:"النشاط الأخير", actPassed:"نجح بالاختبار وحصل على شهادة", actFailed:"خاض الاختبار ولم ينجح",
+    actRegistered:"سجّل كموظف جديد", noActivity:"لا يوجد نشاط بعد.",
+    filtersTitle:"التصفية والبحث", fltDept:"القسم", fltStatus:"النتيجة", fltAll:"الكل", fltPass:"ناجح", fltFail:"راسب",
+    fltScoreMin:"أدنى نسبة", fltScoreMax:"أعلى نسبة", fltFrom:"من تاريخ", fltTo:"إلى تاريخ", resetFilters:"إعادة تعيين",
+    colAttempts:"المحاولات", hideRow:"إخفاء", restoreRow:"استعادة",
+    drawerAttemptsLbl:"إجمالي المحاولات", drawerHistoryLbl:"سجل المحاولات", drawerCertLbl:"الشهادة",
+    drawerNoCert:"لا توجد شهادة بعد.", drawerOpenDrive:"فتح ملف الشهادة", drawerScan:"امسح للتحقق من الصحة",
+    exportCsv:"تصدير CSV", printReport:"طباعة التقرير", quickActions:"إجراءات سريعة", hiddenRowsPanel:"سطر مخفي",
+    verifyTitle:"التحقق من الشهادة", verifyValidMsg:"هذه الشهادة صحيحة وموثّقة لدينا.",
+    verifyInvalidMsg:"تعذّر التحقق من رقم هذه الشهادة.", verifySub:"مستشفى الأوغستا فيكتوريا — تدريب السلامة وإدارة المرافق",
+    verifyBack:"العودة للرئيسية",
+    alertNotConnectedMsg:"Google Sheet غير متصل — البيانات المعروضة محفوظة محلياً على هذا الجهاز فقط.",
+    alertSyncErrorMsg:"فشلت آخر محاولة مزامنة — يتم عرض بيانات محفوظة مسبقاً.",
+    alertPendingMsg:"موظف مسجّل لم يبدأ الاختبار بعد.",
+    alertExpiringMsg:"شهادة ستنتهي خلال 30 يوم.",
+    footerVersionLbl:"الإصدار", showHidden:"إظهار الصفوف المخفية",
   }
 };
 let LANG = 'en';
@@ -572,9 +680,12 @@ let STATE = {
   slideIdx:0, visited:[0],
   examIdx:0, examAnswers:new Array(EXAM.length).fill(null), examResult:null,
   autoplay:false, autoplayTimer:null,
-  adminData:[], adminDeptFilter:'', adminSearch:'',
+  adminData:[], adminEmployees:[], adminDeptFilter:'', adminSearch:'',
+  adminStatusFilter:'', adminScoreMin:'', adminScoreMax:'', adminDateFrom:'', adminDateTo:'',
+  hiddenIds:[], drawerId:null, lastSyncAt:null, verifyCertId:null,
   gasUrl:'', gasStatus:'idle',
 };
+let CHARTS = {};
 
 /* ============================= STORAGE (dual-mode) =============================
    Uses Claude's window.storage while running as a Claude.ai artifact.
@@ -629,12 +740,41 @@ async function fetchAllResults(){
           id: row['Employee ID'], name: row['Name'], department: row['Department'],
           score: Number(row['Score']), total: Number(row['Total']), percent: Number(row['Percent']),
           passed: String(row['Status']).toLowerCase()==='pass', date: row['Date'], certId: row['Certificate ID']||'',
+          certLink: row['Certificate Link']||'',
           answers: safeParseJson(row['Answers JSON'])
         })).sort((a,b)=> String(b.date).localeCompare(String(a.date)));
       }
     }catch(e){ console.error('Sheet fetch failed, falling back to local cache', e); STATE.gasStatus='error'; }
   }
   return fetchLocalResults();
+}
+async function fetchAllEmployees(){
+  if(STATE.gasUrl){
+    try{
+      const res = await fetch(STATE.gasUrl+'?action=employees&_=' + Date.now());
+      if(res.ok){
+        const rows = await res.json();
+        return rows.map(row=>({
+          id: row['Employee ID'], name: row['Name'], department: row['Department'],
+          email: row['Email']||'', createdAt: row['Registered At']||''
+        }));
+      }
+    }catch(e){ console.error('Sheet employee fetch failed, falling back to local cache', e); }
+  }
+  const out=[];
+  try{
+    const list = await Store.list('emp:', true);
+    for(const k of (list.keys||[])){
+      try{ const r=await Store.get(k, true); if(r && r.value) out.push(JSON.parse(r.value)); }catch(e){}
+    }
+  }catch(e){ console.error(e); }
+  return out;
+}
+async function loadHiddenIds(){
+  try{ const r = await Store.get('admin:hidden', true); STATE.hiddenIds = r&&r.value? JSON.parse(r.value) : []; }catch(e){ STATE.hiddenIds=[]; }
+}
+async function saveHiddenIds(){
+  try{ await Store.set('admin:hidden', JSON.stringify(STATE.hiddenIds), true); }catch(e){}
 }
 async function fetchLocalResults(){
   const out=[];
@@ -1107,6 +1247,11 @@ function renderCertificate(){
   </div>`;
 }
 function printCertificate(){ window.print(); }
+function printAdminReport(){
+  document.body.classList.add('printing-report');
+  window.print();
+  setTimeout(()=>document.body.classList.remove('printing-report'), 500);
+}
 function buildCertPdf({name, department, percent, date, certId, fileId}){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
@@ -1156,43 +1301,152 @@ function downloadCertForRecord(certIdSafe){
 /* ============================= RENDER: ADMIN ============================= */
 async function loadAdminData(){
   STATE.adminData = await fetchAllResults();
-  if(STATE.screen==='adminDash') render();
+  STATE.adminEmployees = await fetchAllEmployees();
+  await loadHiddenIds();
+  STATE.lastSyncAt = new Date();
+  if(STATE.screen==='adminDash'){ render(); }
 }
+
+/* ---- pure computation helpers (operate on STATE.adminData / adminEmployees) ---- */
+function visibleAdminData(){
+  return STATE.adminData.filter(r=> !STATE.hiddenIds.includes(r.id+'|'+r.date+'|'+(r.certId||'')));
+}
+function rowKey(r){ return r.id+'|'+r.date+'|'+(r.certId||''); }
+function computeStats(){
+  const all = visibleAdminData();
+  const total = all.length;
+  const uniqueAttempted = new Set(all.map(r=>r.id)).size;
+  const registered = STATE.adminEmployees.length || uniqueAttempted;
+  const passCount = all.filter(r=>r.passed).length;
+  const failCount = total - passCount;
+  const passRate = pct(passCount, total);
+  const avgScore = total? Math.round(all.reduce((s,r)=>s+r.percent,0)/total) : 0;
+  const certCount = all.filter(r=>r.certId).length;
+  const today = fmtDate();
+  const todayCount = all.filter(r=>r.date===today).length;
+  const pending = Math.max(0, registered - uniqueAttempted);
+  return { total, registered, passCount, failCount, passRate, avgScore, certCount, todayCount, pending, uniqueAttempted };
+}
+function computeDeptStats(){
+  const all = visibleAdminData();
+  const depts = {};
+  STATE.adminEmployees.forEach(e=>{
+    if(!depts[e.department]) depts[e.department] = { dept:e.department, registered:0, attemptedIds:new Set(), scoreSum:0, scoreN:0, certs:0 };
+    depts[e.department].registered++;
+  });
+  all.forEach(r=>{
+    if(!depts[r.department]) depts[r.department] = { dept:r.department, registered:0, attemptedIds:new Set(), scoreSum:0, scoreN:0, certs:0 };
+    depts[r.department].attemptedIds.add(r.id);
+    depts[r.department].scoreSum += r.percent; depts[r.department].scoreN++;
+    if(r.certId) depts[r.department].certs++;
+  });
+  return Object.values(depts).map(d=>({
+    dept:d.dept,
+    registered: Math.max(d.registered, d.attemptedIds.size),
+    completed: d.attemptedIds.size,
+    completionRate: pct(d.attemptedIds.size, Math.max(d.registered, d.attemptedIds.size)),
+    avgScore: d.scoreN? Math.round(d.scoreSum/d.scoreN) : 0,
+    certs: d.certs
+  }));
+}
+function computeMonthly(){
+  const all = visibleAdminData();
+  const byMonth = {};
+  all.forEach(r=>{
+    const m = String(r.date||'').slice(0,7); if(!m) return;
+    if(!byMonth[m]) byMonth[m] = { month:m, scoreSum:0, n:0, certs:0 };
+    byMonth[m].scoreSum += r.percent; byMonth[m].n++;
+    if(r.certId) byMonth[m].certs++;
+  });
+  return Object.values(byMonth).sort((a,b)=>a.month.localeCompare(b.month)).slice(-6).map(m=>({
+    month:m.month, avgScore: m.n? Math.round(m.scoreSum/m.n):0, completed:m.n, certs:m.certs
+  }));
+}
+function computeHistogram(){
+  const all = visibleAdminData();
+  const buckets = [[0,50],[51,60],[61,70],[71,80],[81,90],[91,100]];
+  return buckets.map(([lo,hi])=> all.filter(r=> r.percent>=lo && r.percent<=hi).length);
+}
+function computeLeaderboard(){
+  const all = visibleAdminData();
+  const best = {};
+  all.forEach(r=>{
+    if(!best[r.id] || r.percent > best[r.id].percent) best[r.id] = r;
+  });
+  return Object.values(best).sort((a,b)=> b.percent - a.percent || String(a.date).localeCompare(String(b.date))).slice(0,10);
+}
+function computeExpiring(){
+  const all = visibleAdminData().filter(r=>r.certId);
+  const now = new Date();
+  return all.map(r=>{
+    const issued = new Date(r.date);
+    const daysLeft = isNaN(issued.getTime())? null : Math.round(365 - ((now - issued)/86400000));
+    return Object.assign({}, r, { daysLeft });
+  }).filter(r=> r.daysLeft!==null && r.daysLeft<=30).sort((a,b)=>a.daysLeft-b.daysLeft);
+}
+function computeActivity(){
+  const all = visibleAdminData().map(r=>({
+    date:r.date, type: r.passed?'passed':'failed', name:r.name, dept:r.department, percent:r.percent
+  }));
+  const regs = STATE.adminEmployees.map(e=>({ date:(e.createdAt||'').slice(0,10), type:'registered', name:e.name, dept:e.department }));
+  return all.concat(regs).filter(x=>x.date).sort((a,b)=> String(b.date).localeCompare(String(a.date))).slice(0,15);
+}
+function scoreColor(p){ return p>=85? '#1E8E5A' : p>=70? '#C9A227' : '#C0392B'; }
+
+/* ---- filters ---- */
+function filteredAdminData(){
+  const s = STATE.adminSearch.trim().toLowerCase();
+  return visibleAdminData().filter(r=>{
+    const matchS = !s || r.name.toLowerCase().includes(s) || String(r.id).toLowerCase().includes(s) || String(r.certId||'').toLowerCase().includes(s);
+    const matchD = !STATE.adminDeptFilter || r.department===STATE.adminDeptFilter;
+    const matchSt = !STATE.adminStatusFilter || (STATE.adminStatusFilter==='pass'? r.passed : !r.passed);
+    const matchMin = STATE.adminScoreMin===''||STATE.adminScoreMin===null || r.percent >= Number(STATE.adminScoreMin);
+    const matchMax = STATE.adminScoreMax===''||STATE.adminScoreMax===null || r.percent <= Number(STATE.adminScoreMax);
+    const matchFrom = !STATE.adminDateFrom || String(r.date) >= STATE.adminDateFrom;
+    const matchTo = !STATE.adminDateTo || String(r.date) <= STATE.adminDateTo;
+    return matchS && matchD && matchSt && matchMin && matchMax && matchFrom && matchTo;
+  });
+}
+function attemptsCountFor(id){ return visibleAdminData().filter(r=>r.id===id).length; }
+
 function renderAdminDash(){
+  const stats = computeStats();
+  const deptStats = computeDeptStats().sort((a,b)=>b.avgScore-a.avgScore);
+  const leaderboard = computeLeaderboard();
+  const expiring = computeExpiring();
+  const activity = computeActivity();
   const data = filteredAdminData();
-  const total = STATE.adminData.length;
-  const passCount = STATE.adminData.filter(r=>r.passed).length;
-  const passRate = pct(passCount,total);
-  const avgScore = total? Math.round(STATE.adminData.reduce((s,r)=>s+r.percent,0)/total) : 0;
+  const hiddenCount = STATE.hiddenIds.length;
 
-  const byDept = {};
-  STATE.adminData.forEach(r=>{ byDept[r.department]=(byDept[r.department]||0)+1; });
-  const maxDept = Math.max(1,...Object.values(byDept));
-  const deptRows = Object.entries(byDept).sort((a,b)=>b[1]-a[1]).map(([dep,count])=>{
-    const label = deptLabelOf(dep);
-    return `<div class="bar-row"><span>${escapeHtml(label)}</span><div class="track"><div class="fill" style="width:${(count/maxDept)*100}%"></div></div><span class="num">${count}</span></div>`;
-  }).join('') || `<div class="empty-state">${t('noResults')}</div>`;
-
-  const deptFilterOpts = Array.from(new Set(STATE.adminData.map(r=>r.department))).map(dep=>{
-    return `<option value="${escapeHtml(dep)}" ${STATE.adminDeptFilter===dep?'selected':''}>${escapeHtml(deptLabelOf(dep))}</option>`;
-  }).join('');
+  const deptFilterOpts = Array.from(new Set(STATE.adminData.map(r=>r.department))).map(dep=>
+    `<option value="${escapeHtml(dep)}" ${STATE.adminDeptFilter===dep?'selected':''}>${escapeHtml(deptLabelOf(dep))}</option>`
+  ).join('');
 
   const rows = data.map(r=>{
     const safeCert = (r.certId||'').replace(/'/g,"");
-    return `<tr>
-      <td>${escapeHtml(r.name)}</td>
+    const key = rowKey(r);
+    return `<tr class="${r.passed?'row-pass':'row-fail'}">
       <td class="num">${escapeHtml(r.id)}</td>
+      <td>${escapeHtml(r.name)}</td>
       <td>${escapeHtml(deptLabelOf(r.department))}</td>
       <td class="num">${r.percent}% (${r.score}/${r.total})</td>
+      <td class="num">${attemptsCountFor(r.id)}</td>
       <td><span class="tag ${r.passed?'pass':'fail'}">${r.passed? t('passTag') : t('failTag')}</span></td>
       <td class="num">${r.date}</td>
       <td class="num">${r.certId||'—'}</td>
       <td style="white-space:nowrap;">
-        <button class="row-ic-btn" onclick='openDetailModal("${r.id}")' title="${t('viewDetails')}">${ICONS.eye}</button>
+        <button class="row-ic-btn" onclick='openDrawer("${r.id}")' title="${t('viewDetails')}">${ICONS.eye}</button>
         ${r.passed? `<button class="row-ic-btn" onclick="downloadCertForRecord('${safeCert}')" title="${t('colCertDl')}">${ICONS.download}</button>` : ''}
+        <button class="row-ic-btn" onclick='hideRow("${key}")' title="${t('hideRow')}">${ICONS.x}</button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="8"><div class="empty-state">${t('noResults')}</div></td></tr>`;
+  }).join('') || `<tr><td colspan="9"><div class="empty-state">${t('noResults')}</div></td></tr>`;
+
+  const alerts = [];
+  if(!STATE.gasUrl) alerts.push({ tone:'warn', text:t('alertNotConnectedMsg') });
+  else if(STATE.gasStatus==='error') alerts.push({ tone:'bad', text:t('alertSyncErrorMsg') });
+  if(stats.pending>0) alerts.push({ tone:'info', text: stats.pending+' '+t('alertPendingMsg') });
+  if(expiring.length>0) alerts.push({ tone:'warn', text: expiring.length+' '+t('alertExpiringMsg') });
 
   return `
   <div class="dash-head">
@@ -1200,65 +1454,280 @@ function renderAdminDash(){
       <div class="avatar" style="background:linear-gradient(140deg,var(--gold),var(--gold-light));color:var(--navy-dark);">${ICONS.chart.replace(/currentColor/g,'var(--navy-dark)')}</div>
       <div><h2>${t('adminTitle')}</h2><div class="dep">${t('adminSub')}</div></div>
     </div>
-    <button class="icon-btn" style="color:var(--navy);border-color:var(--line);background:#fff;" onclick="openGasSettings()" title="${t('gsheetSettings')}"><span style="color:var(--navy)">${ICONS.gear}</span></button>
-    <button class="btn btn-ghost" onclick="loadAdminData()">${ic('refresh')} ${t('refresh')}</button>
   </div>
 
-  <div class="panel" style="display:flex;align-items:center;gap:12px;padding:14px 20px;">
-    <div class="ic" style="width:34px;height:34px;border-radius:9px;background:${STATE.gasUrl?'rgba(30,142,90,.12)':'var(--bg)'};display:flex;align-items:center;justify-content:center;">
-      <span style="color:${STATE.gasUrl?'var(--success)':'var(--muted)'}">${STATE.gasUrl? ICONS.cloud : ICONS.cloudOff}</span>
+  <div class="glass-card sync-bar">
+    <div class="sync-dot ${STATE.gasUrl?'on':'off'}"></div>
+    <div style="flex:1;min-width:180px;">
+      <b style="font-size:13.5px;display:block;">${STATE.gasUrl? t('connectedShort') : t('notConnectedShort')}</b>
+      <span style="font-size:11.5px;color:var(--muted);">${t('lastSync')}: ${STATE.lastSyncAt? STATE.lastSyncAt.toLocaleString(): '—'}</span>
     </div>
-    <div style="flex:1;">
-      <b style="font-size:13px;display:block;">${STATE.gasUrl? t('gsheetConnected') : t('gsheetNotConnected')}</b>
-      ${STATE.gasUrl? `<span style="font-size:11.5px;color:var(--muted);word-break:break-all;">${escapeHtml(STATE.gasUrl)}</span>` : ''}
+    <div class="toolbar">
+      <button class="btn btn-ghost" onclick="loadAdminData()">${ic('refresh')} ${t('syncNow')}</button>
+      <button class="btn btn-ghost" onclick="openGasSettings()">${ic('gear')} ${t('gsheetSettings')}</button>
+      <button class="btn btn-primary" onclick="exportExcel()">${ic('download')} ${t('exportExcel')}</button>
+      <button class="btn btn-ghost" onclick="exportCsv()">${ic('download')} ${t('exportCsv')}</button>
+      <button class="btn btn-ghost" onclick="printAdminReport()">${ic('printer')} ${t('printReport')}</button>
     </div>
-    <button class="btn btn-ghost" onclick="openGasSettings()">${ic('gear')} ${t('gsheetSettings')}</button>
   </div>
 
-  <div class="stat-grid">
-    <div class="stat-card"><div class="top"><span>${t('statTotalEmp')}</span><div class="ic">${ICONS.users}</div></div><b class="num">${total}</b></div>
-    <div class="stat-card"><div class="top"><span>${t('statCompleted')}</span><div class="ic">${ICONS.check}</div></div><b class="num">${total}</b></div>
-    <div class="stat-card"><div class="top"><span>${t('statPassRate')}</span><div class="ic">${ICONS.award}</div></div><b class="num">${passRate}%</b></div>
-    <div class="stat-card"><div class="top"><span>${t('statAvgScore')}</span><div class="ic">${ICONS.target}</div></div><b class="num">${avgScore}%</b></div>
+  ${alerts.length? `<div class="alert-stack">${alerts.map(a=>`<div class="alert-row ${a.tone}">${ICONS.alert}<span>${escapeHtml(a.text)}</span></div>`).join('')}</div>` : ''}
+
+  <div class="stat-grid stat-grid-8">
+    <div class="stat-card glass-card"><div class="top"><span>${t('statTotalEmp')}</span><div class="ic">${ICONS.users}</div></div><b class="num">${stats.registered}</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('statTotalExams')}</span><div class="ic">${ICONS.book}</div></div><b class="num">${stats.total}</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('statCompleted')}</span><div class="ic">${ICONS.check}</div></div><b class="num">${stats.uniqueAttempted}</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('statPending')}</span><div class="ic">${ICONS.x}</div></div><b class="num">${stats.pending}</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('statPassRate')}</span><div class="ic">${ICONS.award}</div></div><b class="num">${stats.passRate}%</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('statAvgScore')}</span><div class="ic">${ICONS.target}</div></div><b class="num">${stats.avgScore}%</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('statCertificates')}</span><div class="ic">${ICONS.award}</div></div><b class="num">${stats.certCount}</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('statTodayExams')}</span><div class="ic">${ICONS.chart}</div></div><b class="num">${stats.todayCount}</b></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-head"><h3>${ic('chart')} ${t('byDept')}</h3></div>
-    ${deptRows}
+  <div class="chart-grid">
+    <div class="glass-card chart-card"><h3>${t('chartDeptScoreTitle')}</h3><canvas id="chartDeptScore"></canvas></div>
+    <div class="glass-card chart-card"><h3>${t('chartPassFailTitle')}</h3><canvas id="chartPassFail"></canvas></div>
+  </div>
+  <div class="chart-grid">
+    <div class="glass-card chart-card"><h3>${t('chartDeptPieTitle')}</h3><canvas id="chartDeptPie"></canvas></div>
+    <div class="glass-card chart-card"><h3>${t('chartMonthlyTitle')}</h3><canvas id="chartMonthly"></canvas></div>
+  </div>
+  <div class="glass-card chart-card" style="margin-bottom:20px;"><h3>${t('chartHistTitle')}</h3><canvas id="chartHist" style="max-height:220px;"></canvas></div>
+
+  <div class="two-col">
+    <div class="glass-card panel-inner">
+      <div class="panel-head"><h3>${ic('award')} ${t('leaderboardTitle')}</h3></div>
+      <table class="mini-table">
+        <thead><tr><th>${t('rankCol')}</th><th>${t('colName')}</th><th>${t('colDept')}</th><th>${t('colScore')}</th></tr></thead>
+        <tbody>
+          ${leaderboard.length? leaderboard.map((r,i)=>`<tr><td class="num">#${i+1}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(deptLabelOf(r.department))}</td><td class="num">${r.percent}%</td></tr>`).join('') : `<tr><td colspan="4"><div class="empty-state">${t('noResults')}</div></td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="glass-card panel-inner">
+      <div class="panel-head"><h3>${ic('alert')} ${t('expiringTitle')}</h3></div>
+      ${expiring.length? expiring.map(r=>`
+        <div class="bar-row" style="grid-template-columns:1fr auto;">
+          <span>${escapeHtml(r.name)} &middot; ${escapeHtml(deptLabelOf(r.department))}</span>
+          <span class="tag ${r.daysLeft<0?'fail':'pass'}" style="background:${r.daysLeft<0?'rgba(192,57,43,.12)':'rgba(201,162,39,.15)'};color:${r.daysLeft<0?'var(--danger)':'#8a6d1a'};">${r.daysLeft<0? t('expiredLbl') : r.daysLeft+' '+t('daysLeftLbl')}</span>
+        </div>`).join('') : `<div class="empty-state">${t('noExpiring')}</div>`}
+    </div>
   </div>
 
-  <div class="panel">
+  <div class="glass-card panel-inner">
+    <div class="panel-head"><h3>${ic('chart')} ${t('complianceTitle')}</h3></div>
+    <div style="overflow:auto;">
+      <table class="mini-table">
+        <thead><tr><th>${t('colDept')}</th><th>${t('colHeadcount')}</th><th>${t('statCompleted')}</th><th>${t('colCompletionRate')}</th><th>${t('statAvgScore')}</th><th>${t('colCertsShort')}</th><th>${t('colStatus')}</th></tr></thead>
+        <tbody>
+          ${deptStats.length? deptStats.sort((a,b)=>a.completionRate-b.completionRate).map(d=>{
+            const status = d.completionRate>=80? {c:'statusOk',cls:'pass'} : d.completionRate>=50? {c:'statusWarn',cls:'warn'} : {c:'statusBad',cls:'fail'};
+            return `<tr><td>${escapeHtml(deptLabelOf(d.dept))}</td><td class="num">${d.registered}</td><td class="num">${d.completed}</td><td class="num">${d.completionRate}%</td><td class="num">${d.avgScore}%</td><td class="num">${d.certs}</td><td><span class="tag ${status.cls}">${t(status.c)}</span></td></tr>`;
+          }).join('') : `<tr><td colspan="7"><div class="empty-state">${t('noResults')}</div></td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="glass-card panel-inner">
+    <div class="panel-head"><h3>${ic('refresh')} ${t('activityTitle')}</h3></div>
+    <div class="timeline">
+      ${activity.length? activity.map(a=>{
+        const icon = a.type==='passed'? ICONS.award : a.type==='failed'? ICONS.x : ICONS.users;
+        const label = a.type==='passed'? t('actPassed') : a.type==='failed'? t('actFailed') : t('actRegistered');
+        return `<div class="tl-row"><div class="tl-dot ${a.type}">${icon}</div><div class="tl-body"><b>${escapeHtml(a.name)}</b> ${escapeHtml(label)}${a.percent!==undefined?` — ${a.percent}%`:''}<div class="tl-date">${escapeHtml(deptLabelOf(a.dept))} &middot; ${a.date}</div></div></div>`;
+      }).join('') : `<div class="empty-state">${t('noActivity')}</div>`}
+    </div>
+  </div>
+
+  <div class="glass-card panel-inner">
+    <div class="panel-head"><h3>${t('filtersTitle')}</h3><button class="link-btn" onclick="resetAdminFilters()">${ic('refresh')} ${t('resetFilters')}</button></div>
+    <div class="filters-grid">
+      <input type="text" id="adminSearch" placeholder="${t('searchPlaceholder')}" value="${escapeHtml(STATE.adminSearch)}" oninput="STATE.adminSearch=this.value; renderAdminTableOnly();">
+      <select id="adminDeptSel" onchange="STATE.adminDeptFilter=this.value; renderAdminTableOnly();">
+        <option value="">${t('allDepts')}</option>${deptFilterOpts}
+      </select>
+      <select id="adminStatusSel" onchange="STATE.adminStatusFilter=this.value; renderAdminTableOnly();">
+        <option value="" ${STATE.adminStatusFilter===''?'selected':''}>${t('fltStatus')}: ${t('fltAll')}</option>
+        <option value="pass" ${STATE.adminStatusFilter==='pass'?'selected':''}>${t('fltPass')}</option>
+        <option value="fail" ${STATE.adminStatusFilter==='fail'?'selected':''}>${t('fltFail')}</option>
+      </select>
+      <input type="number" placeholder="${t('fltScoreMin')}" min="0" max="100" value="${STATE.adminScoreMin}" onchange="STATE.adminScoreMin=this.value; renderAdminTableOnly();">
+      <input type="number" placeholder="${t('fltScoreMax')}" min="0" max="100" value="${STATE.adminScoreMax}" onchange="STATE.adminScoreMax=this.value; renderAdminTableOnly();">
+      <input type="date" value="${STATE.adminDateFrom}" onchange="STATE.adminDateFrom=this.value; renderAdminTableOnly();">
+      <input type="date" value="${STATE.adminDateTo}" onchange="STATE.adminDateTo=this.value; renderAdminTableOnly();">
+    </div>
+  </div>
+
+  <div class="glass-card panel-inner">
     <div class="panel-head">
-      <h3>${t('resultsTable')}</h3>
-      <div class="toolbar">
-        <input type="text" id="adminSearch" placeholder="${t('searchPlaceholder')}" value="${escapeHtml(STATE.adminSearch)}" oninput="STATE.adminSearch=this.value; renderAdminTableOnly();">
-        <select id="adminDeptSel" onchange="STATE.adminDeptFilter=this.value; renderAdminTableOnly();">
-          <option value="">${t('allDepts')}</option>${deptFilterOpts}
-        </select>
-        <button class="btn btn-primary" onclick="exportExcel()">${ic('download')} ${t('exportExcel')}</button>
-      </div>
+      <h3>${t('resultsTable')} ${hiddenCount? `<span style="font-weight:600;color:var(--muted);font-size:11.5px;">(${hiddenCount} ${t('hiddenRowsPanel')})</span>`:''}</h3>
     </div>
     <div style="overflow:auto;">
       <table id="adminTable">
-        <thead><tr><th>${t('colName')}</th><th>${t('colId')}</th><th>${t('colDept')}</th><th>${t('colScore')}</th><th>${t('colStatus')}</th><th>${t('colDate')}</th><th>${t('colCert')}</th><th>${t('detailsCol')}</th></tr></thead>
+        <thead><tr><th>${t('colId')}</th><th>${t('colName')}</th><th>${t('colDept')}</th><th>${t('colScore')}</th><th>${t('colAttempts')}</th><th>${t('colStatus')}</th><th>${t('colDate')}</th><th>${t('colCert')}</th><th>${t('detailsCol')}</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
-  </div>`;
+  </div>
+
+  <div class="admin-foot">
+    <img src="${HOSPITAL_LOGO}" alt="AVH" style="height:20px;">
+    <span>${t('footerVersionLbl')} 1.0 &middot; ${t('lastSync')}: ${STATE.lastSyncAt? STATE.lastSyncAt.toLocaleString(): '—'} &middot; © ${new Date().getFullYear()} Augusta Victoria Hospital</span>
+  </div>
+  <div id="drawerSlot"></div>`;
 }
-function filteredAdminData(){
-  return STATE.adminData.filter(r=>{
-    const s = STATE.adminSearch.trim().toLowerCase();
-    const matchS = !s || r.name.toLowerCase().includes(s) || String(r.id).toLowerCase().includes(s);
-    const matchD = !STATE.adminDeptFilter || r.department===STATE.adminDeptFilter;
-    return matchS && matchD;
-  });
+
+function resetAdminFilters(){
+  STATE.adminSearch=''; STATE.adminDeptFilter=''; STATE.adminStatusFilter='';
+  STATE.adminScoreMin=''; STATE.adminScoreMax=''; STATE.adminDateFrom=''; STATE.adminDateTo='';
+  renderAdminTableOnly();
 }
 function renderAdminTableOnly(){
   const wrap = document.getElementById('mainWrap');
   if(wrap) wrap.innerHTML = renderAdminDash();
+  initAdminCharts();
   const s = document.getElementById('adminSearch');
   if(s){ s.focus(); s.selectionStart = s.selectionEnd = s.value.length; }
+}
+function hideRow(key){
+  if(!STATE.hiddenIds.includes(key)){ STATE.hiddenIds.push(key); saveHiddenIds(); renderAdminTableOnly(); }
+}
+
+/* ---- Chart.js wiring ---- */
+function destroyChart(id){ if(CHARTS[id]){ CHARTS[id].destroy(); delete CHARTS[id]; } }
+function initAdminCharts(){
+  if(typeof Chart==='undefined' || STATE.screen!=='adminDash') return;
+  Chart.defaults.font.family = "'Manrope','Cairo',sans-serif";
+  Chart.defaults.color = '#5C707A';
+
+  const deptStats = computeDeptStats().filter(d=>d.completed>0).sort((a,b)=>b.avgScore-a.avgScore).slice(0,10);
+  destroyChart('chartDeptScore');
+  const c1 = document.getElementById('chartDeptScore');
+  if(c1) CHARTS['chartDeptScore'] = new Chart(c1, {
+    type:'bar',
+    data:{ labels: deptStats.map(d=>deptLabelOf(d.dept)), datasets:[{ data: deptStats.map(d=>d.avgScore), backgroundColor: deptStats.map(d=>scoreColor(d.avgScore)), borderRadius:6 }] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{ max:100, grid:{color:'#eef2f3'} }, y:{ grid:{display:false} } } }
+  });
+
+  const stats = computeStats();
+  destroyChart('chartPassFail');
+  const c2 = document.getElementById('chartPassFail');
+  if(c2) CHARTS['chartPassFail'] = new Chart(c2, {
+    type:'doughnut',
+    data:{ labels:[t('passTag'), t('failTag'), t('statPending')], datasets:[{ data:[stats.passCount, stats.failCount, stats.pending], backgroundColor:['#1E8E5A','#C0392B','#C9C9C9'] }] },
+    options:{ plugins:{legend:{position:'bottom'}} }
+  });
+
+  const byDeptCount = {};
+  STATE.adminEmployees.forEach(e=>{ byDeptCount[e.department]=(byDeptCount[e.department]||0)+1; });
+  const deptEntries = Object.entries(byDeptCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  destroyChart('chartDeptPie');
+  const c3 = document.getElementById('chartDeptPie');
+  if(c3) CHARTS['chartDeptPie'] = new Chart(c3, {
+    type:'pie',
+    data:{ labels: deptEntries.map(e=>deptLabelOf(e[0])), datasets:[{ data: deptEntries.map(e=>e[1]), backgroundColor:['#0F7A72','#14A297','#C9A227','#E4C55E','#0B3550','#123f5c','#5C707A','#1E8E5A','#C0392B','#9AA8AE'] }] },
+    options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}}} }
+  });
+
+  const monthly = computeMonthly();
+  destroyChart('chartMonthly');
+  const c4 = document.getElementById('chartMonthly');
+  if(c4) CHARTS['chartMonthly'] = new Chart(c4, {
+    type:'line',
+    data:{ labels: monthly.map(m=>m.month), datasets:[
+      { label:t('statAvgScore'), data: monthly.map(m=>m.avgScore), borderColor:'#0F7A72', backgroundColor:'rgba(15,122,114,.12)', tension:.35, fill:true },
+      { label:t('statCompleted'), data: monthly.map(m=>m.completed), borderColor:'#C9A227', tension:.35 },
+      { label:t('statCertificates'), data: monthly.map(m=>m.certs), borderColor:'#0B3550', tension:.35 },
+    ]},
+    options:{ plugins:{legend:{position:'bottom'}}, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  const hist = computeHistogram();
+  destroyChart('chartHist');
+  const c5 = document.getElementById('chartHist');
+  if(c5) CHARTS['chartHist'] = new Chart(c5, {
+    type:'bar',
+    data:{ labels:['0-50','51-60','61-70','71-80','81-90','91-100'], datasets:[{ data:hist, backgroundColor:'#14A297', borderRadius:6 }] },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } }
+  });
+}
+
+/* ---- Employee side drawer ---- */
+function openDrawer(id){
+  STATE.drawerId = id;
+  const rec = visibleAdminData().filter(r=>r.id===id).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const emp = STATE.adminEmployees.find(e=>String(e.id)===String(id));
+  const slot = document.getElementById('drawerSlot');
+  if(!slot || rec.length===0) return;
+  const latest = rec[0];
+  const verifyBase = (location.origin && location.origin!=='null')? (location.origin+location.pathname) : '';
+  const qrTarget = latest.certId? (verifyBase? verifyBase+'?verify='+encodeURIComponent(latest.certId) : (latest.certLink||'')) : '';
+  slot.innerHTML = `
+    <div class="modal-overlay" id="drawerOverlay" onclick="if(event.target===this) closeDrawer()">
+      <div class="drawer">
+        <div class="drawer-head">
+          <div class="avatar" style="width:44px;height:44px;">${initials(latest.name)}</div>
+          <div style="flex:1;">
+            <b style="display:block;font-size:15px;">${escapeHtml(latest.name)}</b>
+            <span style="font-size:12px;color:var(--muted);">${escapeHtml(deptLabelOf(latest.department))} ${emp&&emp.email? ' &middot; '+escapeHtml(emp.email):''}</span>
+          </div>
+          <button class="row-ic-btn" onclick="closeDrawer()">${ICONS.x}</button>
+        </div>
+        <div class="drawer-body">
+          <div class="drawer-stats">
+            <div><b>${rec.length}</b><span>${t('drawerAttemptsLbl')}</span></div>
+            <div><b>${latest.percent}%</b><span>${t('statAvgScore')}</span></div>
+            <div><span class="tag ${latest.passed?'pass':'fail'}">${latest.passed? t('passTag'):t('failTag')}</span><span>${t('colStatus')}</span></div>
+          </div>
+
+          <h4>${t('drawerHistoryLbl')}</h4>
+          <table class="mini-table">
+            <thead><tr><th>${t('colDate')}</th><th>${t('colScore')}</th><th>${t('colStatus')}</th></tr></thead>
+            <tbody>${rec.map(r=>`<tr><td class="num">${r.date}</td><td class="num">${r.percent}%</td><td><span class="tag ${r.passed?'pass':'fail'}">${r.passed?t('passTag'):t('failTag')}</span></td></tr>`).join('')}</tbody>
+          </table>
+
+          <h4>${t('drawerCertLbl')}</h4>
+          ${latest.certId? `
+            <div class="cert-mini">
+              <div>
+                <b>${escapeHtml(latest.certId)}</b>
+                <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                  <button class="btn btn-ghost" style="padding:8px 12px;font-size:12px;" onclick="downloadCertForRecord('${(latest.certId||'').replace(/'/g,'')}')">${ic('download')} ${t('colCertDl')}</button>
+                  ${latest.certLink? `<a class="btn btn-ghost" style="padding:8px 12px;font-size:12px;text-decoration:none;" href="${latest.certLink}" target="_blank" rel="noopener">${ic('cloud')} ${t('drawerOpenDrive')}</a>` : ''}
+                </div>
+              </div>
+              ${qrTarget? `<div style="text-align:center;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrTarget)}" alt="QR" style="border-radius:8px;border:1px solid var(--line);"><div style="font-size:10px;color:var(--muted);margin-top:4px;">${t('drawerScan')}</div></div>` : ''}
+            </div>` : `<div class="empty-state">${t('drawerNoCert')}</div>`}
+
+          <h4>${t('examTitle')}</h4>
+          ${(latest.answers||[]).length? latest.answers.map((a,ai)=>`
+            <div class="ans-row ${a.isCorrect?'correct':'wrong'}">
+              <div class="qt">${ai+1}. ${escapeHtml(a.q)}</div>
+              <div class="at">${t('yourAnswer')}: <b>${a.selected? escapeHtml(a.selected) : t('notAnswered')}</b></div>
+              ${!a.isCorrect? `<div class="at">${t('correctAnswerLbl')}: <b>${escapeHtml(a.correct)}</b></div>` : ''}
+            </div>`).join('') : `<div class="empty-state">${t('noResults')}</div>`}
+        </div>
+      </div>
+    </div>`;
+}
+function closeDrawer(){ const el=document.getElementById('drawerSlot'); if(el) el.innerHTML=''; STATE.drawerId=null; }
+
+function exportCsv(){
+  const rows = filteredAdminData();
+  const headers = ['Employee ID','Name','Department','Score','Total','Percent','Status','Date','Certificate ID'];
+  const lines = [headers.join(',')];
+  rows.forEach(r=>{
+    const line = [r.id, r.name, r.department, r.score, r.total, r.percent, r.passed?'Pass':'Fail', r.date, r.certId||'']
+      .map(v=> '"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',');
+    lines.push(line);
+  });
+  const blob = new Blob(["\uFEFF"+lines.join('\n')], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'AVH_FMS_Training_Report_'+fmtDate()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
 function exportExcel(){
   const data = filteredAdminData().map(r=>({
@@ -1273,36 +1742,38 @@ function exportExcel(){
   XLSX.writeFile(wb, 'AVH_FMS_Training_Report_'+fmtDate()+'.xlsx');
 }
 
-/* ============================= ADMIN DETAIL MODAL ============================= */
-function openDetailModal(id){
-  const rec = (STATE.adminData||[]).find(r=>String(r.id)===String(id));
-  if(!rec) return;
-  const answers = rec.answers || [];
-  const overlay = document.createElement('div');
-  overlay.className='modal-overlay';
-  overlay.id='detailOverlay';
-  overlay.onclick = (e)=>{ if(e.target===overlay) closeDetailModal(); };
-  overlay.innerHTML = `
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3>${escapeHtml(rec.name)} &middot; ${escapeHtml(deptLabelOf(rec.department))} &middot; ${rec.percent}%</h3>
-        <button class="row-ic-btn" onclick="closeDetailModal()" title="${t('close')}">${ICONS.x}</button>
-      </div>
-      <div class="modal-body">
-        ${answers.length? answers.map((a,ai)=>`
-          <div class="ans-row ${a.isCorrect?'correct':'wrong'}">
-            <div class="qt">${ai+1}. ${escapeHtml(a.q)}</div>
-            <div class="at">${t('yourAnswer')}: <b>${a.selected? escapeHtml(a.selected) : t('notAnswered')}</b></div>
-            ${!a.isCorrect? `<div class="at">${t('correctAnswerLbl')}: <b>${escapeHtml(a.correct)}</b></div>` : ''}
-          </div>`).join('') : `<div class="empty-state">${t('noResults')}</div>`}
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
+/* ============================= CERTIFICATE VERIFICATION (public) ============================= */
+async function renderVerifyScreen(){
+  const certId = STATE.verifyCertId;
+  await loadGasConfig();
+  const results = await fetchAllResults();
+  const rec = results.find(r=> String(r.certId).toLowerCase()===String(certId).toLowerCase());
+  const wrap = document.getElementById('mainWrap');
+  wrap.innerHTML = `
+  <div class="verify-card">
+    <div class="cert-seal" style="margin:0 auto 14px;"><div class="in">${ICONS.award.replace(/currentColor/g,'var(--navy)')}</div></div>
+    <h2 style="text-align:center;margin:0 0 4px;">${t('verifyTitle')}</h2>
+    <p style="text-align:center;color:var(--muted);font-size:12.5px;margin:0 0 20px;">${t('verifySub')}</p>
+    ${rec? `
+      <div class="status-badge pass" style="display:flex;margin:0 auto 18px;width:fit-content;">${ic('check')} ${t('verifyValidMsg')}</div>
+      <div class="cert-meta" style="margin-top:0;">
+        <div><b>${escapeHtml(rec.name)}</b><span>${t('colName')}</span></div>
+        <div><b>${escapeHtml(deptLabelOf(rec.department))}</b><span>${t('certDept')}</span></div>
+        <div><b>${rec.percent}%</b><span>${t('certScore')}</span></div>
+        <div><b>${rec.date}</b><span>${t('certDate')}</span></div>
+        <div><b>${escapeHtml(rec.certId)}</b><span>${t('certId')}</span></div>
+      </div>` : `
+      <div class="status-badge fail" style="display:flex;margin:0 auto 18px;width:fit-content;">${ic('x')} ${t('verifyInvalidMsg')}</div>
+      <p style="text-align:center;color:var(--muted);font-size:12.5px;">${escapeHtml(certId||'')}</p>`}
+    <div style="text-align:center;margin-top:22px;">
+      <button class="btn btn-ghost" onclick="location.href=location.pathname">${ic('back')} ${t('verifyBack')}</button>
+    </div>
+  </div>`;
 }
-function closeDetailModal(){
-  const el = document.getElementById('detailOverlay');
-  if(el) el.remove();
-}
+
+/* ============================= ADMIN DETAIL MODAL (legacy, kept for compatibility) ============================= */
+function openDetailModal(id){ openDrawer(id); }
+function closeDetailModal(){ closeDrawer(); }
 
 /* ============================= GOOGLE SHEET SETTINGS MODAL ============================= */
 function openGasSettings(){
@@ -1355,9 +1826,15 @@ function logout(){
   if(!confirm(t('logoutConfirm'))) return;
   stopAutoplay();
   Store.delete('session:current', true);
-  STATE = { screen:'login', role:null, loginTab:'signin', user:{name:'',id:'',dept:'',email:''}, slideIdx:0, visited:[0],
+  const keepGas = STATE.gasUrl;
+  STATE = {
+    screen:'login', role:null, loginTab:'signin', user:{name:'',id:'',dept:'',email:''}, slideIdx:0, visited:[0],
     examIdx:0, examAnswers:new Array(EXAM.length).fill(null), examResult:null, autoplay:false, autoplayTimer:null,
-    adminData:[], adminDeptFilter:'', adminSearch:'', gasUrl:STATE.gasUrl, gasStatus:'idle' };
+    adminData:[], adminEmployees:[], adminDeptFilter:'', adminSearch:'',
+    adminStatusFilter:'', adminScoreMin:'', adminScoreMax:'', adminDateFrom:'', adminDateTo:'',
+    hiddenIds:[], drawerId:null, lastSyncAt:null, verifyCertId:null,
+    gasUrl:keepGas, gasStatus:'idle'
+  };
   render();
 }
 function setLang(l){
@@ -1370,6 +1847,8 @@ function setLang(l){
   render();
 }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+window.addEventListener('afterprint', ()=> document.body.classList.remove('printing-report'));
 
 /* ============================= KEYBOARD NAV ============================= */
 document.addEventListener('keydown', (e)=>{
@@ -1400,14 +1879,25 @@ function render(){
     case 'examResult': html = renderExamResult(); break;
     case 'cert': html = renderCertificate(); break;
     case 'adminDash': html = renderAdminDash(); break;
+    case 'verify': html = '<div class="verify-card"><div class="empty-state">...</div></div>'; break;
     default: html = renderLogin();
   }
   wrap.innerHTML = html;
+  if(STATE.screen==='adminDash') initAdminCharts();
+  if(STATE.screen==='verify') renderVerifyScreen();
   window.scrollTo({top:0, behavior:'instant'});
 }
 async function initApp(){
   const logoEl = document.getElementById('topbarLogoImg');
   if(logoEl) logoEl.src = HOSPITAL_LOGO;
+  const params = new URLSearchParams(location.search);
+  const verifyId = params.get('verify');
+  if(verifyId){
+    STATE.verifyCertId = verifyId;
+    STATE.screen = 'verify';
+    render();
+    return;
+  }
   await loadGasConfig();
   await tryAutoLogin();
   render();
