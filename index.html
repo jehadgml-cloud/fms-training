@@ -2,7 +2,12 @@
 <html lang="en" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B3550">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AVH FMS Training">
 <title>AVH FMS Training LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Cairo:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -65,10 +70,10 @@
   .lang-toggle button.active{ background:var(--gold); color:var(--navy-dark); }
   .icon-btn{
     display:inline-flex; align-items:center; justify-content:center;
-    width:36px;height:36px;border-radius:10px; border:1px solid rgba(255,255,255,.2);
+    width:42px;height:42px;border-radius:11px; border:1px solid rgba(255,255,255,.2);
     background:rgba(255,255,255,.06); color:#fff;
   }
-  .icon-btn svg{width:17px;height:17px;}
+  .icon-btn svg{width:20px;height:20px;}
   .icon-btn:hover{ background:rgba(255,255,255,.16); }
 
   main{ flex:1; width:100%; }
@@ -139,9 +144,9 @@
   label{ font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; display:block; margin:10px 0 5px;}
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    border:none; border-radius:11px; padding:11px 18px; font-weight:800; font-size:14px;
+    border:none; border-radius:12px; padding:13px 20px; font-weight:800; font-size:14.5px;
   }
-  .btn svg{ width:16px;height:16px; }
+  .btn svg{ width:17px;height:17px; }
   .btn-primary{ background:var(--teal); color:#fff; }
   .btn-primary:hover{ background:var(--teal-light); }
   .btn-gold{ background:linear-gradient(120deg,var(--gold),var(--gold-light)); color:var(--navy-dark); }
@@ -154,9 +159,9 @@
   /* ---------- Employee dashboard ---------- */
   .dash-head{ display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:22px;}
   .whoami{ display:flex; align-items:center; gap:14px; }
-  .avatar{ width:52px;height:52px;border-radius:14px; background:linear-gradient(140deg,var(--navy),var(--teal)); color:#fff; display:flex; align-items:center;justify-content:center; font-weight:800; font-size:18px;}
-  .whoami h2{ margin:0; font-size:19px;}
-  .whoami .dep{ font-size:12.5px; color:var(--muted); font-weight:700; margin-top:2px;}
+  .avatar{ width:58px;height:58px;border-radius:15px; background:linear-gradient(140deg,var(--navy),var(--teal)); color:#fff; display:flex; align-items:center;justify-content:center; font-weight:800; font-size:20px; flex:none; box-shadow:0 6px 16px rgba(11,53,80,.25);}
+  .whoami h2{ margin:0; font-size:22px;}
+  .whoami .dep{ font-size:13px; color:var(--muted); font-weight:700; margin-top:3px;}
   .ring-wrap{ display:flex; align-items:center; gap:14px; background:#fff; border-radius:999px; padding:8px 20px 8px 8px; box-shadow:var(--shadow);}
   .ring{ width:60px;height:60px; border-radius:50%; display:flex;align-items:center;justify-content:center; position:relative; flex:none;}
   .ring .hole{ position:absolute; inset:7px; background:#fff; border-radius:50%; display:flex;align-items:center;justify-content:center; font-family:'Space Grotesk'; font-weight:700; font-size:13px;}
@@ -168,8 +173,8 @@
   }
   .course-hero .inner{ padding:32px; width:100%; position:relative; z-index:2; }
   .course-hero .eyebrow{ display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); padding:6px 14px; border-radius:999px; font-size:11.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; margin-bottom:14px;}
-  .course-hero h2{ font-size:28px; margin:0 0 10px; max-width:640px; }
-  .course-hero p{ margin:0 0 20px; color:#dce9ee; max-width:560px; font-size:14px; line-height:1.65;}
+  .course-hero h2{ font-size:clamp(20px,4vw,28px); margin:0 0 10px; max-width:640px; }
+  .course-hero p{ margin:0 0 20px; color:#dce9ee; max-width:560px; font-size:clamp(13px,2.4vw,14px); line-height:1.65;}
   .course-hero-foot{ display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
   .hero-progress{ flex:1; min-width:220px; max-width:340px; }
   .hero-progress .track{ height:9px; border-radius:6px; background:rgba(255,255,255,.18); overflow:hidden;}
@@ -290,12 +295,15 @@
 
   /* ---------- Admin ---------- */
   .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:22px;}
-  .stat-card{ background:#fff; border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;}
+  .stat-card{ background:#fff; border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px; border-inline-start:4px solid var(--teal); }
+  .stat-card:nth-child(4n+2){ border-inline-start-color:var(--gold); }
+  .stat-card:nth-child(4n+3){ border-inline-start-color:var(--navy); }
+  .stat-card:nth-child(4n+4){ border-inline-start-color:var(--success); }
   .stat-card .top{ display:flex; justify-content:space-between; align-items:center;}
-  .stat-card .ic{ width:34px;height:34px;border-radius:9px; background:var(--bg); display:flex;align-items:center;justify-content:center;}
-  .stat-card .ic svg{ width:17px;height:17px; stroke:var(--teal); }
-  .stat-card b{ font-size:26px; font-family:'Space Grotesk'; }
-  .stat-card span{ font-size:12px; color:var(--muted); font-weight:700;}
+  .stat-card .ic{ width:38px;height:38px;border-radius:10px; background:rgba(15,122,114,.12); display:flex;align-items:center;justify-content:center;}
+  .stat-card .ic svg{ width:19px;height:19px; stroke:var(--teal); }
+  .stat-card b{ font-size:29px; font-family:'Space Grotesk'; }
+  .stat-card span{ font-size:12.5px; color:var(--muted); font-weight:700;}
 
   .panel{ background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; margin-bottom:20px;}
   .panel-head{ display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px;}
@@ -393,7 +401,57 @@
   .ans-row .qt{ font-size:13px; font-weight:700; margin-bottom:6px; }
   .ans-row .at{ font-size:12.5px; color:var(--muted); }
   .ans-row .at b{ color:var(--ink); }
-  @media (max-width:640px){ .cert{padding:26px 18px;} .cert .name{font-size:24px;} .stage img{max-height:44vh;} }
+  @media (max-width:640px){
+    .cert{padding:26px 18px;} .cert .name{font-size:24px;} .stage img{max-height:44vh;}
+
+    html{ font-size:17px; }
+    .wrap{ padding:16px 14px 44px; }
+    .topbar{ padding:10px 12px; }
+    .brand-text .t2{ font-size:9.5px; }
+    .top-actions{ gap:6px; }
+    .lang-toggle button{ padding:6px 9px; font-size:11.5px; }
+    .icon-btn{ width:38px;height:38px; }
+    .pill{ display:none; } /* name pill hidden on phones to save space; avatar + heading already show it */
+
+    .dash-head{ flex-direction:column; align-items:stretch; gap:14px; }
+    .whoami{ gap:12px; }
+    .whoami h2{ font-size:19px; }
+    .ring-wrap{ width:100%; justify-content:space-between; padding:10px 18px 10px 10px; }
+
+    .mystat-grid, .stat-grid, .stat-grid-8{ grid-template-columns:repeat(2,1fr) !important; gap:10px; }
+    .stat-card{ padding:14px 16px; }
+    .stat-card b{ font-size:24px; }
+
+    .course-hero{ min-height:0; border-radius:18px; }
+    .course-hero .inner{ padding:22px 18px; }
+    .course-hero-foot{ flex-direction:column; align-items:stretch; }
+    .hero-progress{ max-width:none; }
+
+    .cta-strip{ flex-direction:column; }
+    .cta-card{ min-width:0; }
+
+    .btn{ padding:14px 18px; font-size:15px; width:100%; }
+    .btn-block{ width:100%; }
+    .cert-actions .btn, .exam-foot .btn, .viewer-controls .btn{ width:auto; }
+
+    .round-btn{ width:52px;height:52px; }
+    .round-btn svg{ width:21px;height:21px; }
+    .round-btn.primary{ width:60px;height:60px; }
+
+    .chart-grid, .two-col{ grid-template-columns:1fr !important; }
+    .filters-grid{ grid-template-columns:1fr 1fr; }
+    .sync-bar{ flex-direction:column; align-items:stretch; }
+    .sync-bar .toolbar{ width:100%; }
+    .sync-bar .toolbar .btn{ flex:1; min-width:120px; }
+
+    table{ font-size:12px; }
+    .drawer{ width:100%; }
+
+    .login-panel-r{ padding:26px 22px; }
+    .login-title{ font-size:24px; }
+    .grid2{ grid-template-columns:1fr; }
+    .polaroid-stack{ display:none; }
+  }
 </style>
 </head>
 <body>
@@ -944,7 +1002,7 @@ async function saveGasConfig(url){
 function genCertId(id){ return 'AVH-FMS-'+new Date().getFullYear()+'-'+id.toString().slice(-4).padStart(4,'0')+'-'+Math.floor(Math.random()*900+100); }
 function pct(n,d){ return d? Math.round((n/d)*100):0; }
 function fmtDate(d){ const dt=d?new Date(d):new Date(); return dt.toISOString().slice(0,10); }
-function initials(name){ return (name||'').trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()||'?'; }
+function initials(name){ const s=(name||'').trim(); if(!s) return '👤'; return s.split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()||'👤'; }
 function deptLabelOf(en){ return LANG==='ar'? ((DEPARTMENTS.find(d=>d.en===en)||{}).ar || en) : en; }
 
 /* ============================= RENDER: LOGIN ============================= */
@@ -1264,7 +1322,6 @@ function renderEmpHome(){
   const done = new Set(STATE.visited).size;
   const p = pct(done, TOTAL_SLIDES);
   const finished = STATE.visited.includes(TOTAL_SLIDES-1) || done>=TOTAL_SLIDES;
-  const passed = STATE.examResult && STATE.examResult.passed;
   const courseBtnLabel = p===0? t('startCourse') : (finished? t('reviewCourse') : t('continueCourse'));
 
   const history = (STATE.myHistory||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -1272,6 +1329,7 @@ function renderEmpHome(){
   const bestScore = attempts? Math.max(...history.map(r=>r.percent)) : null;
   const latestCert = history.find(r=>r.certId);
   const certValidUntilStr = latestCert? certValidUntil(latestCert.date) : null;
+  const passed = (STATE.examResult && STATE.examResult.passed) || !!latestCert;
 
   return `
   <div class="dash-head">
@@ -1453,9 +1511,11 @@ function submitExam(){
   };
   saveResult(rec);
   STATE.lastCertId = rec.certId;
+  STATE.myHistory = (STATE.myHistory||[]).concat([rec]);
   saveProgress();
   STATE.screen='examResult';
   render();
+  loadMyHistory().then(()=>{ if(STATE.screen==='empHome') render(); });
 }
 function renderExamResult(){
   const r=STATE.examResult;
@@ -1526,9 +1586,15 @@ function certValidUntil(dateStr){
   d.setFullYear(d.getFullYear()+2);
   return d.toISOString().slice(0,10);
 }
+function myLatestCertRecord(){
+  if(STATE.examResult && STATE.examResult.passed) return { percent:STATE.examResult.percent, date:STATE.examResult.date, certId: STATE.lastCertId };
+  const history = (STATE.myHistory||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const latest = history.find(r=>r.certId);
+  return latest ? { percent:latest.percent, date:latest.date, certId:latest.certId } : { percent:0, date:fmtDate(), certId: STATE.lastCertId||'' };
+}
 function renderCertificate(){
-  const r=STATE.examResult||{percent:0,date:fmtDate()};
-  const certId = STATE.lastCertId || genCertId(STATE.user.id);
+  const r = myLatestCertRecord();
+  const certId = r.certId || genCertId(STATE.user.id);
   const deptLabel = deptLabelOf(STATE.user.dept);
   const validUntil = certValidUntil(r.date);
   return `
@@ -1655,7 +1721,7 @@ function buildCertPdf({name, department, percent, date, certId, fileId}){
   doc.save('AVH_FMS_Certificate_'+(fileId||certId)+'.pdf');
 }
 function downloadCertPdf(certId){
-  const r = STATE.examResult||{percent:0,date:fmtDate()};
+  const r = myLatestCertRecord();
   buildCertPdf({ name:STATE.user.name, department:deptLabelOf(STATE.user.dept), percent:r.percent, date:r.date, certId, fileId:STATE.user.id });
 }
 function downloadCertForRecord(certIdSafe){
