@@ -118,10 +118,10 @@
     transition:.15s; background:#fff;
   }
   .role-card:hover{ border-color:var(--teal-light); box-shadow:0 6px 18px rgba(15,122,114,.12); transform:translateY(-1px); }
-  .role-ic{ width:46px;height:46px;border-radius:12px; background:var(--bg); display:flex;align-items:center;justify-content:center; flex:none;}
-  .role-ic svg{ width:22px;height:22px; stroke:var(--teal); }
+  .role-ic{ width:48px;height:48px;border-radius:13px; background:linear-gradient(140deg,rgba(15,122,114,.12),rgba(201,162,39,.12)); display:flex;align-items:center;justify-content:center; flex:none;}
+  .role-ic svg{ width:23px;height:23px; stroke:var(--teal); }
   .role-body{ flex:1; }
-  .role-body h3{ margin:0 0 4px; font-size:16px; }
+  .role-body h3{ margin:0 0 4px; font-size:17px; }
   .role-body p{ margin:0 0 12px; font-size:13px; color:var(--muted); line-height:1.55;}
   .auth-head{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
   .auth-tabs{ display:flex; gap:6px; background:var(--bg); border-radius:12px; padding:4px; margin-bottom:18px; }
@@ -184,6 +184,15 @@
   .section-title{ display:flex; align-items:center; gap:10px; margin:26px 0 14px; }
   .section-title .badge-num{ width:26px;height:26px;border-radius:8px; background:var(--navy); color:#fff; font-size:12px; font-weight:800; display:flex;align-items:center;justify-content:center;}
   .section-title h3{ margin:0; font-size:15.5px; }
+
+  .section-divider{ display:flex; align-items:center; gap:12px; margin:36px 0 16px; }
+  .section-divider:first-of-type{ margin-top:8px; }
+  .section-divider .sd-ic{ width:34px;height:34px;border-radius:10px; background:linear-gradient(140deg,var(--navy),var(--teal)); display:flex; align-items:center;justify-content:center; flex:none; box-shadow:0 4px 12px rgba(11,53,80,.2); }
+  .section-divider .sd-ic svg{ width:16px;height:16px; stroke:#fff; }
+  .section-divider h3{ margin:0; font-size:16.5px; color:var(--navy); font-weight:800; }
+  .section-divider .sd-line{ flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }
+  .panel-inner, .glass-card.panel-inner{ transition:.15s; }
+  .panel-inner:hover{ box-shadow:0 14px 32px rgba(11,53,80,.12); }
 
   .cta-strip{ display:flex; gap:14px; margin-top:24px; flex-wrap:wrap; }
   .cta-card{ flex:1; min-width:260px; background:linear-gradient(135deg,var(--navy),var(--navy-soft)); color:#fff; border-radius:var(--radius); padding:22px; display:flex; flex-direction:column; gap:10px;}
@@ -521,6 +530,9 @@ const ICONS = {
   alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
 };
 function ic(name,cls){ return `<span class="${cls||''}">${ICONS[name]||''}</span>`; }
+function sectionDivider(iconName, title){
+  return `<div class="section-divider"><div class="sd-ic">${ICONS[iconName]||ICONS.book}</div><h3>${title}</h3><div class="sd-line"></div></div>`;
+}
 
 /* ============================= I18N ============================= */
 const I18N = {
@@ -627,6 +639,9 @@ const I18N = {
     myDashTitle:"My Training Dashboard", myAttempts:"Exam Attempts", myBestScore:"Best Score",
     myCertStatus:"Certificate Status", myCertValid:"Valid until", myCertNone:"Not yet certified",
     myEvalDone:"Evaluation Submitted", myHistoryTitle:"My Attempt History", myHistoryNone:"No attempts yet.",
+    secMyStats:"Your Progress", secTraining:"Training & Certification", secHistory:"Attempt History",
+    secOverview:"Overview", secAnalytics:"Analytics", secCompliance:"Compliance & Performance",
+    secFeedback:"Training Feedback", secActivity:"Recent Activity", secRecords:"Records & Filters",
   },
   ar:{
     brandTitle:"مستشفى الأوغستا فيكتوريا", brandSub:"تدريب إدارة المرافق والسلامة",
@@ -731,6 +746,9 @@ const I18N = {
     myDashTitle:"لوحتي التدريبية", myAttempts:"محاولات الاختبار", myBestScore:"أفضل نتيجة",
     myCertStatus:"حالة الشهادة", myCertValid:"صالحة حتى", myCertNone:"لم تحصل على شهادة بعد",
     myEvalDone:"تم إرسال التقييم", myHistoryTitle:"سجل محاولاتي", myHistoryNone:"لا توجد محاولات بعد.",
+    secMyStats:"تقدّمك", secTraining:"التدريب والشهادة", secHistory:"سجل المحاولات",
+    secOverview:"نظرة عامة", secAnalytics:"التحليلات", secCompliance:"الالتزام والأداء",
+    secFeedback:"تقييم التدريب", secActivity:"النشاط الأخير", secRecords:"السجلات والفلاتر",
   }
 };
 let LANG = 'en';
@@ -1393,12 +1411,14 @@ function renderEmpHome(){
     </div>
   </div>
 
+  ${sectionDivider('target', t('secMyStats'))}
   <div class="mystat-grid">
     <div class="stat-card glass-card"><div class="top"><span>${t('myAttempts')}</span><div class="ic">${ICONS.book}</div></div><b class="num">${attempts}</b></div>
     <div class="stat-card glass-card"><div class="top"><span>${t('myBestScore')}</span><div class="ic">${ICONS.target}</div></div><b class="num">${bestScore!==null? bestScore+'%':'—'}</b></div>
     <div class="stat-card glass-card"><div class="top"><span>${t('myCertStatus')}</span><div class="ic">${ICONS.award}</div></div><b class="num" style="font-size:14px;">${latestCert? t('myCertValid')+' '+certValidUntilStr : t('myCertNone')}</b></div>
   </div>
 
+  ${sectionDivider('film', t('secTraining'))}
   <div class="course-hero" style="--cover-img:url('${SLIDES[0]}')">
     <div class="inner">
       <span class="eyebrow">${ic('film')} ${t('courseCardEyebrow')}</span>
@@ -1427,8 +1447,8 @@ function renderEmpHome(){
     </div>
   </div>
 
+  ${sectionDivider('chart', t('secHistory'))}
   <div class="glass-card panel-inner">
-    <div class="panel-head"><h3>${ic('chart')} ${t('myHistoryTitle')}</h3></div>
     <table class="mini-table">
       <thead><tr><th>${t('colDate')}</th><th>${t('colScore')}</th><th>${t('colStatus')}</th><th>${t('colCert')}</th></tr></thead>
       <tbody>
@@ -1958,6 +1978,7 @@ function renderAdminDash(){
     </div>
   </div>
 
+  ${sectionDivider('chart', t('secOverview'))}
   <div class="glass-card sync-bar">
     <div class="sync-dot ${STATE.gasUrl?'on':'off'}"></div>
     <div style="flex:1;min-width:180px;">
@@ -1986,6 +2007,7 @@ function renderAdminDash(){
     <div class="stat-card glass-card"><div class="top"><span>${t('statTodayExams')}</span><div class="ic">${ICONS.chart}</div></div><b class="num">${stats.todayCount}</b></div>
   </div>
 
+  ${sectionDivider('target', t('secAnalytics'))}
   <div class="chart-grid">
     <div class="glass-card chart-card"><h3>${t('chartDeptScoreTitle')}</h3>${stats.total? `<canvas id="chartDeptScore"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
     <div class="glass-card chart-card"><h3>${t('chartPassFailTitle')}</h3>${(stats.total+stats.pending)? `<canvas id="chartPassFail"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
@@ -1996,6 +2018,7 @@ function renderAdminDash(){
   </div>
   <div class="glass-card chart-card" style="margin-bottom:20px;"><h3>${t('chartHistTitle')}</h3>${stats.total? `<canvas id="chartHist" style="max-height:220px;"></canvas>` : `<div class="empty-state">${t('noResults')}</div>`}</div>
 
+  ${sectionDivider('award', t('secCompliance'))}
   <div class="two-col">
     <div class="glass-card panel-inner">
       <div class="panel-head"><h3>${ic('award')} ${t('leaderboardTitle')}</h3></div>
@@ -2031,6 +2054,7 @@ function renderAdminDash(){
     </div>
   </div>
 
+  ${sectionDivider('users', t('secFeedback'))}
   <div class="glass-card panel-inner">
     <div class="panel-head"><h3>${ic('award')} ${t('evalSummaryTitle')}</h3>${evalSummary.n? `<span style="font-size:11.5px;color:var(--muted);">${evalSummary.n}</span>`:''}</div>
     ${evalSummary.n? `
@@ -2051,6 +2075,7 @@ function renderAdminDash(){
     ` : `<div class="empty-state">${t('evalNoData')}</div>`}
   </div>
 
+  ${sectionDivider('refresh', t('secActivity'))}
   <div class="glass-card panel-inner">
     <div class="panel-head"><h3>${ic('refresh')} ${t('activityTitle')}</h3></div>
     <div class="timeline">
@@ -2062,6 +2087,7 @@ function renderAdminDash(){
     </div>
   </div>
 
+  ${sectionDivider('search', t('secRecords'))}
   <div class="glass-card panel-inner">
     <div class="panel-head"><h3>${t('filtersTitle')}</h3><button class="link-btn" onclick="resetAdminFilters()">${ic('refresh')} ${t('resetFilters')}</button></div>
     <div class="filters-grid">
