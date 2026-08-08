@@ -149,7 +149,9 @@
   .btn svg{ width:17px;height:17px; }
   .btn-primary{ background:var(--teal); color:#fff; }
   .btn-primary:hover{ background:var(--teal-light); }
-  .btn-gold{ background:linear-gradient(120deg,var(--gold),var(--gold-light)); color:var(--navy-dark); }
+  .btn-gold{ background:linear-gradient(120deg,var(--gold),var(--gold-light)); color:var(--navy-dark); cursor:pointer; transition:.15s; }
+  .btn-gold:hover{ filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 8px 18px rgba(201,162,39,.35); }
+  .btn-gold:active{ transform:translateY(0); filter:brightness(0.97); }
   .btn-ghost{ background:#fff; border:1.5px solid var(--line); color:var(--ink); }
   .btn-ghost:hover{ border-color:var(--teal-light); }
   .btn-block{ width:100%; }
@@ -243,6 +245,7 @@
   .qdot.answered{ background:var(--teal); }
   .qdot.current{ outline:2px solid var(--gold); outline-offset:2px;}
 
+  .exam-foot .btn{ flex-shrink:0; }
   .result-hero{ text-align:center; padding:10px 0 20px; }
   .eval-q{ margin-bottom:22px; }
   .eval-q-text{ font-size:14.5px; font-weight:700; margin-bottom:10px; }
@@ -561,7 +564,7 @@ const I18N = {
     courseCardEyebrow:"Full Training Deck", courseCardTitle:"Facility Management & Safety — Complete Course",
     courseCardDesc:"Go through all 80 original training slides at your own pace. Use play to auto-advance, or navigate manually. Reach the end to unlock your exam.",
     continueCourse:"Continue", startCourse:"Start Course", reviewCourse:"Review Slides",
-    startExamCard:"Final Exam", startExamDesc:"View every slide to unlock the exam. 20 randomly selected questions from a 50-question bank — a different set for every attempt. 70% required to pass.",
+    startExamCard:"Final Exam", startExamDesc:"View every slide to unlock the exam. 10 randomly selected questions from a 50-question bank — a different set for every attempt. 70% required to pass.",
     startExamBtn:"Start Exam", locked:"Locked", certCard:"Certificate", certDescLocked:"Pass the exam to unlock your certificate of completion.",
     certDescReady:"Congratulations! Your certificate is ready to download.", viewCert:"View Certificate",
     slideOf:"Slide", of:"of", finishedDeck:"You've reached the last slide — your exam is now unlocked.",
@@ -668,7 +671,7 @@ const I18N = {
     courseCardEyebrow:"العرض التدريبي الكامل", courseCardTitle:"إدارة المرافق والسلامة — الدورة الكاملة",
     courseCardDesc:"تصفّح جميع الشرائح الـ80 الأصلية للعرض التدريبي بالسرعة التي تناسبك. استخدم زر التشغيل للتقدّم التلقائي، أو تنقّل يدوياً. عند الوصول للنهاية يُفتح الاختبار.",
     continueCourse:"متابعة", startCourse:"ابدأ الدورة", reviewCourse:"مراجعة الشرائح",
-    startExamCard:"الاختبار النهائي", startExamDesc:"شاهد جميع الشرائح لفتح الاختبار. 20 سؤالاً تُختار عشوائياً من بنك 50 سؤالاً — مجموعة مختلفة بكل محاولة. النجاح يتطلب 70%.",
+    startExamCard:"الاختبار النهائي", startExamDesc:"شاهد جميع الشرائح لفتح الاختبار. 10 أسئلة تُختار عشوائياً من بنك 50 سؤالاً — مجموعة مختلفة بكل محاولة. النجاح يتطلب 70%.",
     startExamBtn:"ابدأ الاختبار", locked:"مغلق", certCard:"الشهادة", certDescLocked:"اجتز الاختبار بنجاح لفتح شهادة إتمام الدورة.",
     certDescReady:"مبروك! شهادتك جاهزة للتحميل.", viewCert:"عرض الشهادة",
     slideOf:"شريحة", of:"من", finishedDeck:"لقد وصلت إلى آخر شريحة — تم فتح الاختبار الآن.",
@@ -861,7 +864,7 @@ const QUESTION_BANK = [
  {en:{q:"Which of these best describes the purpose of an emergency assembly point?",o:["A place to store equipment","A designated safe location for staff/patients to gather after evacuation","A parking area for visitors","A smoking area"]}, ar:{q:"أي مما يلي يصف بشكل أفضل الغرض من نقطة التجمع الآمنة؟",o:["مكان لتخزين المعدات","مكان آمن محدد يتجمع فيه الموظفون والمرضى بعد الإخلاء","موقف سيارات للزوار","منطقة تدخين"]}, c:1},
  {en:{q:"Which of the following is the correct first step when a fire alarm sounds?",o:["Assume it's a drill and continue working","Check the surrounding area for any signs of fire (smell, smoke, heat)","Leave the building immediately without checking anything","Call your family first"]}, ar:{q:"ما الخطوة الأولى الصحيحة عند سماع صفارة إنذار الحريق؟",o:["افتراض أنه تمرين ومتابعة العمل","تفقّد المنطقة المحيطة من أي آثار حريق (رائحة، دخان، حرارة)","مغادرة المبنى فوراً دون أي تحقق","الاتصال بالعائلة أولاً"]}, c:1},
 ];
-const QUESTIONS_PER_EXAM = 20;
+const QUESTIONS_PER_EXAM = 10;
 function shuffleArray(arr){
   const a = arr.slice();
   for(let i=a.length-1; i>0; i--){
@@ -1566,31 +1569,36 @@ function examPrev(){ if(STATE.examIdx>0){ STATE.examIdx--; render(); } }
 function examNext(){ if(STATE.examIdx<EXAM.length-1){ STATE.examIdx++; render(); } }
 function jumpTo(qi){ STATE.examIdx=qi; render(); }
 function submitExam(){
-  STATE.evalSubmittedForCert = false;
-  let correct=0;
-  const answerSheet = EXAM.map((q,i)=>{
-    const d = q.en; // store canonical English snapshot so admins can read it regardless of the employee's language
-    const sel = STATE.examAnswers[i];
-    const isCorrect = sel===q.c;
-    if(isCorrect) correct++;
-    return { q:d.q, selected: (sel!==null && sel!==undefined)? d.o[sel] : null, correct:d.o[q.c], isCorrect };
-  });
-  const percent = pct(correct, EXAM.length);
-  const passed = percent >= PASS_PERCENT;
-  STATE.examResult = { correct, total:EXAM.length, percent, passed, date:fmtDate() };
-  const rec = {
-    id:STATE.user.id, name:STATE.user.name, department:STATE.user.dept,
-    score:correct, total:EXAM.length, percent, passed, date:fmtDate(),
-    certId: passed ? genCertId(STATE.user.id) : '',
-    answers: answerSheet
-  };
-  saveResult(rec);
-  STATE.lastCertId = rec.certId;
-  STATE.myHistory = (STATE.myHistory||[]).concat([rec]);
-  saveProgress();
-  STATE.screen='examResult';
-  render();
-  loadMyHistory().then(()=>{ if(STATE.screen==='empHome') render(); });
+  try{
+    STATE.evalSubmittedForCert = false;
+    let correct=0;
+    const answerSheet = EXAM.map((q,i)=>{
+      const d = q.en; // store canonical English snapshot so admins can read it regardless of the employee's language
+      const sel = STATE.examAnswers[i];
+      const isCorrect = sel===q.c;
+      if(isCorrect) correct++;
+      return { q:d.q, selected: (sel!==null && sel!==undefined)? d.o[sel] : null, correct:d.o[q.c], isCorrect };
+    });
+    const percent = pct(correct, EXAM.length);
+    const passed = percent >= PASS_PERCENT;
+    STATE.examResult = { correct, total:EXAM.length, percent, passed, date:fmtDate() };
+    const rec = {
+      id:STATE.user.id, name:STATE.user.name, department:STATE.user.dept,
+      score:correct, total:EXAM.length, percent, passed, date:fmtDate(),
+      certId: passed ? genCertId(STATE.user.id) : '',
+      answers: answerSheet
+    };
+    STATE.lastCertId = rec.certId;
+    STATE.myHistory = (STATE.myHistory||[]).concat([rec]);
+    STATE.screen='examResult';
+    render();
+    try{ saveResult(rec); }catch(e){ console.error('saveResult failed', e); }
+    try{ saveProgress(); }catch(e){ console.error('saveProgress failed', e); }
+    loadMyHistory().then(()=>{ if(STATE.screen==='empHome') render(); }).catch(()=>{});
+  }catch(err){
+    console.error('submitExam failed', err);
+    alert(LANG==='ar' ? 'حدث خطأ غير متوقع أثناء إرسال الاختبار. حاول مرة أخرى.' : 'Something went wrong submitting the exam. Please try again.');
+  }
 }
 function renderExamResult(){
   const r=STATE.examResult;
