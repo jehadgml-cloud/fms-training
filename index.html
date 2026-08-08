@@ -1569,6 +1569,7 @@ function examPrev(){ if(STATE.examIdx>0){ STATE.examIdx--; render(); } }
 function examNext(){ if(STATE.examIdx<EXAM.length-1){ STATE.examIdx++; render(); } }
 function jumpTo(qi){ STATE.examIdx=qi; render(); }
 function submitExam(){
+  let rec;
   try{
     STATE.evalSubmittedForCert = false;
     let correct=0;
@@ -1582,7 +1583,7 @@ function submitExam(){
     const percent = pct(correct, EXAM.length);
     const passed = percent >= PASS_PERCENT;
     STATE.examResult = { correct, total:EXAM.length, percent, passed, date:fmtDate() };
-    const rec = {
+    rec = {
       id:STATE.user.id, name:STATE.user.name, department:STATE.user.dept,
       score:correct, total:EXAM.length, percent, passed, date:fmtDate(),
       certId: passed ? genCertId(STATE.user.id) : '',
@@ -1590,15 +1591,25 @@ function submitExam(){
     };
     STATE.lastCertId = rec.certId;
     STATE.myHistory = (STATE.myHistory||[]).concat([rec]);
+  }catch(err){
+    showDebugAlert('GRADING', err);
+    return;
+  }
+  try{
     STATE.screen='examResult';
     render();
-    try{ saveResult(rec); }catch(e){ console.error('saveResult failed', e); }
-    try{ saveProgress(); }catch(e){ console.error('saveProgress failed', e); }
-    loadMyHistory().then(()=>{ if(STATE.screen==='empHome') render(); }).catch(()=>{});
   }catch(err){
-    console.error('submitExam failed', err);
-    alert(LANG==='ar' ? 'حدث خطأ غير متوقع أثناء إرسال الاختبار. حاول مرة أخرى.' : 'Something went wrong submitting the exam. Please try again.');
+    showDebugAlert('RENDER', err);
+    return;
   }
+  try{ saveResult(rec); }catch(e){ console.error('saveResult failed', e); }
+  try{ saveProgress(); }catch(e){ console.error('saveProgress failed', e); }
+  loadMyHistory().then(()=>{ if(STATE.screen==='empHome') render(); }).catch(()=>{});
+}
+function showDebugAlert(phase, err){
+  console.error('submitExam failed at', phase, err);
+  const detail = (err && (err.stack || err.message)) ? String(err.stack || err.message).slice(0,400) : String(err);
+  alert((LANG==='ar' ? 'حدث خطأ غير متوقع أثناء إرسال الاختبار. حاول مرة أخرى.' : 'Something went wrong submitting the exam. Please try again.') + '\n\n[DEBUG:' + phase + '] ' + detail);
 }
 function renderExamResult(){
   const r=STATE.examResult;
