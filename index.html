@@ -1067,7 +1067,11 @@ async function saveGasConfig(url){
 }
 
 /* ============================= UTIL ============================= */
-function genCertId(id){ return 'AVH-FMS-'+new Date().getFullYear()+'-'+id.toString().slice(-4).padStart(4,'0')+'-'+Math.floor(Math.random()*900+100); }
+function fallbackId(){ return 'EMP'+Date.now().toString().slice(-6); }
+function genCertId(id){
+  const safeId = (id!==undefined && id!==null && String(id).trim()!=='') ? String(id).trim() : Math.random().toString(36).slice(2,8).toUpperCase();
+  return 'AVH-FMS-'+new Date().getFullYear()+'-'+safeId.slice(-4).padStart(4,'0')+'-'+Math.floor(Math.random()*900+100);
+}
 function pct(n,d){ return d? Math.round((n/d)*100):0; }
 function fmtDate(d){ const dt=d?new Date(d):new Date(); return dt.toISOString().slice(0,10); }
 function initials(name){ const s=(name||'').trim(); if(!s) return '👤'; return s.split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()||'👤'; }
@@ -1352,7 +1356,7 @@ async function tryAutoLogin(){
       if(rec && rec.value){
         const account = JSON.parse(rec.value);
         STATE.role='employee';
-        STATE.user = { name:account.name, id:account.id, dept:account.department, email:account.email };
+        STATE.user = { name:account.name, id:account.id||fallbackId(), dept:account.department, email:account.email };
         await restoreProgress();
         STATE.screen='empHome';
       }
