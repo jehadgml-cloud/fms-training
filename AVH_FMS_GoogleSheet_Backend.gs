@@ -32,6 +32,7 @@ const RESULT_SHEET_NAME = 'Results';
 const CERT_FOLDER_NAME = 'AVH FMS Certificates';
 const ACCOUNTS_SHEET_NAME = 'Accounts';
 const RESETS_SHEET_NAME = 'PasswordResets';
+const EVAL_SHEET_NAME = 'Evaluations';
 const RESET_CODE_VALID_MINUTES = 30;
 
 function doPost(e) {
@@ -66,6 +67,17 @@ function doPost(e) {
         body.data.passed ? 'Pass' : 'Fail', body.data.date,
         body.data.certId || '', certLink, JSON.stringify(body.data.answers || [])
       ]);
+    } else if (body.type === 'evaluation') {
+      const sh = getOrCreateSheet(ss, EVAL_SHEET_NAME,
+        ['Employee ID', 'Name', 'Department', 'Date', 'Certificate ID',
+         'Clarity', 'Materials', 'Relevance', 'Exam Fair', 'Platform', 'Overall', 'Comments']);
+      const r = body.data.ratings || {};
+      sh.appendRow([
+        body.data.id, body.data.name, body.data.department, body.data.date, body.data.certId || '',
+        r.clarity || '', r.materials || '', r.relevance || '', r.examFair || '', r.platform || '', r.overall || '',
+        body.data.comments || ''
+      ]);
+      return jsonOut({ ok: true });
     } else if (body.type === 'account') {
       const sh = getOrCreateSheet(ss, ACCOUNTS_SHEET_NAME,
         ['Email', 'Name', 'Employee ID', 'Department', 'Password Hash', 'Updated At']);
@@ -262,7 +274,10 @@ function getOrCreateFolder(name) {
 function doGet(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const action = (e.parameter.action || 'results').toLowerCase();
-  const sh = ss.getSheetByName(action === 'employees' ? EMP_SHEET_NAME : RESULT_SHEET_NAME);
+  const sheetName = action === 'employees' ? EMP_SHEET_NAME
+    : action === 'evaluations' ? EVAL_SHEET_NAME
+    : RESULT_SHEET_NAME;
+  const sh = ss.getSheetByName(sheetName);
 
   let out = [];
   if (sh && sh.getLastRow() > 1) {

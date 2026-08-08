@@ -230,6 +230,17 @@
   .qdot.current{ outline:2px solid var(--gold); outline-offset:2px;}
 
   .result-hero{ text-align:center; padding:10px 0 20px; }
+  .eval-q{ margin-bottom:22px; }
+  .eval-q-text{ font-size:14.5px; font-weight:700; margin-bottom:10px; }
+  .eval-scale{ display:flex; gap:8px; }
+  .eval-dot{ flex:1; padding:10px 0; border-radius:10px; border:1.5px solid var(--line); background:#fff; font-weight:800; font-size:14px; color:var(--muted); }
+  .eval-dot.sel{ background:var(--teal); border-color:var(--teal); color:#fff; }
+  .eval-scale-labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted); margin-top:4px; }
+  textarea{ width:100%; padding:11px 13px; border-radius:10px; border:1.5px solid var(--line); font-size:14px; font-family:inherit; background:#fbfdfd; resize:vertical; }
+  textarea:focus{ outline:2px solid var(--teal-light); border-color:var(--teal-light); }
+  .mystat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:20px 0; }
+  .comment-card{ background:var(--bg); border-radius:10px; padding:12px 14px; margin-bottom:8px; font-size:12.5px; color:#333; }
+  .comment-card .meta{ font-size:10.5px; color:var(--muted); margin-top:6px; }
   .score-ring{ width:150px;height:150px;border-radius:50%; margin:0 auto 16px; display:flex;align-items:center;justify-content:center; position:relative;}
   .score-ring .hole{ position:absolute; inset:12px; background:#fff; border-radius:50%; display:flex; flex-direction:column; align-items:center;justify-content:center;}
   .score-ring .hole b{ font-family:'Space Grotesk'; font-size:30px; }
@@ -549,6 +560,15 @@ const I18N = {
     errResetCodeInvalid:"Incorrect or expired code.", resetSuccessMsg:"Password reset successfully. You can now sign in.",
     resetRequiresSheet:"Password reset requires an administrator to connect Google Sheet Sync first. Please contact your administrator.",
     sending:"Sending...", verifying:"Verifying...",
+    evalTitle:"Training Evaluation", evalSub:"Before your certificate, please rate this training — it takes less than a minute and helps us improve.",
+    evalDisagree:"Strongly disagree", evalAgree:"Strongly agree",
+    evalCommentsLbl:"Comments or suggestions (optional)", evalCommentsPh:"What could we improve?",
+    evalSubmit:"Submit & Continue to Certificate",
+    evalSummaryTitle:"Training Evaluation Summary", evalAvgOverall:"Average Satisfaction", evalRecentComments:"Recent Comments",
+    evalNoData:"No evaluations submitted yet.",
+    myDashTitle:"My Training Dashboard", myAttempts:"Exam Attempts", myBestScore:"Best Score",
+    myCertStatus:"Certificate Status", myCertValid:"Valid until", myCertNone:"Not yet certified",
+    myEvalDone:"Evaluation Submitted", myHistoryTitle:"My Attempt History", myHistoryNone:"No attempts yet.",
   },
   ar:{
     brandTitle:"مستشفى الأوغستا فيكتوريا", brandSub:"تدريب إدارة المرافق والسلامة",
@@ -644,6 +664,15 @@ const I18N = {
     errResetCodeInvalid:"الرمز غير صحيح أو منتهي الصلاحية.", resetSuccessMsg:"تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
     resetRequiresSheet:"استعادة كلمة المرور تتطلب ربط Google Sheet Sync من قبل المسؤول أولاً. الرجاء التواصل مع المسؤول.",
     sending:"جارٍ الإرسال...", verifying:"جارٍ التحقق...",
+    evalTitle:"تقييم التدريب", evalSub:"قبل الحصول على شهادتك، الرجاء تقييم هذا التدريب — يأخذ أقل من دقيقة ويساعدنا على التحسين.",
+    evalDisagree:"غير موافق إطلاقاً", evalAgree:"موافق تماماً",
+    evalCommentsLbl:"ملاحظات أو مقترحات (اختياري)", evalCommentsPh:"شو المقترح لتحسين التدريب؟",
+    evalSubmit:"إرسال والمتابعة للشهادة",
+    evalSummaryTitle:"ملخص تقييم التدريب", evalAvgOverall:"متوسط الرضا العام", evalRecentComments:"أحدث الملاحظات",
+    evalNoData:"لا توجد تقييمات بعد.",
+    myDashTitle:"لوحتي التدريبية", myAttempts:"محاولات الاختبار", myBestScore:"أفضل نتيجة",
+    myCertStatus:"حالة الشهادة", myCertValid:"صالحة حتى", myCertNone:"لم تحصل على شهادة بعد",
+    myEvalDone:"تم إرسال التقييم", myHistoryTitle:"سجل محاولاتي", myHistoryNone:"لا توجد محاولات بعد.",
   }
 };
 let LANG = 'en';
@@ -722,6 +751,16 @@ const EXAM = [
 ];
 const PASS_PERCENT = 70;
 
+/* ============================= TRAINING EVALUATION (post-exam survey) ============================= */
+const EVAL_QUESTIONS = [
+ {key:'clarity', en:'The training content was clear and easy to understand.', ar:'محتوى التدريب كان واضحاً وسهل الفهم.'},
+ {key:'materials', en:'The slides and training materials were well organized.', ar:'الشرائح ومواد التدريب كانت منظمة بشكل جيد.'},
+ {key:'relevance', en:'This training is relevant and useful to my daily work.', ar:'هذا التدريب ذو صلة ومفيد لعملي اليومي.'},
+ {key:'examFair', en:'The exam questions fairly reflected the training content.', ar:'أسئلة الاختبار عكست محتوى التدريب بشكل عادل.'},
+ {key:'platform', en:'The training platform was easy to use.', ar:'منصة التدريب كانت سهلة الاستخدام.'},
+ {key:'overall', en:'Overall, I am satisfied with this training.', ar:'بشكل عام، أنا راضٍ عن هذا التدريب.'},
+];
+
 /* ============================= APP STATE ============================= */
 let STATE = {
   screen:'login', role:null, loginTab:'signin',
@@ -729,7 +768,8 @@ let STATE = {
   slideIdx:0, visited:[0],
   examIdx:0, examAnswers:new Array(EXAM.length).fill(null), examResult:null,
   autoplay:false, autoplayTimer:null,
-  adminData:[], adminEmployees:[], adminDeptFilter:'', adminSearch:'',
+  evalAnswers:{}, evalSubmittedForCert:false, myHistory:[],
+  adminData:[], adminEmployees:[], adminEvaluations:[], adminDeptFilter:'', adminSearch:'',
   adminStatusFilter:'', adminScoreMin:'', adminScoreMax:'', adminDateFrom:'', adminDateTo:'',
   hiddenIds:[], drawerId:null, lastSyncAt:null, verifyCertId:null,
   gasUrl:'', gasStatus:'idle',
@@ -813,6 +853,32 @@ async function fetchAllEmployees(){
   const out=[];
   try{
     const list = await Store.list('emp:', true);
+    for(const k of (list.keys||[])){
+      try{ const r=await Store.get(k, true); if(r && r.value) out.push(JSON.parse(r.value)); }catch(e){}
+    }
+  }catch(e){ console.error(e); }
+  return out;
+}
+async function fetchAllEvaluations(){
+  if(STATE.gasUrl){
+    try{
+      const res = await fetch(STATE.gasUrl+'?action=evaluations&_=' + Date.now());
+      if(res.ok){
+        const rows = await res.json();
+        return rows.map(row=>({
+          id: row['Employee ID'], name: row['Name'], department: row['Department'], date: row['Date'],
+          certId: row['Certificate ID']||'', comments: row['Comments']||'',
+          ratings: {
+            clarity:Number(row['Clarity']), materials:Number(row['Materials']), relevance:Number(row['Relevance']),
+            examFair:Number(row['Exam Fair']), platform:Number(row['Platform']), overall:Number(row['Overall'])
+          }
+        }));
+      }
+    }catch(e){ console.error('Sheet evaluation fetch failed, falling back to local cache', e); }
+  }
+  const out=[];
+  try{
+    const list = await Store.list('eval:', true);
     for(const k of (list.keys||[])){
       try{ const r=await Store.get(k, true); if(r && r.value) out.push(JSON.parse(r.value)); }catch(e){}
     }
@@ -1107,8 +1173,7 @@ async function submitSignUp(){
   saveEmployee({ id:empId, name:fullName, department:dept, email, lang:LANG, createdAt:fmtDate() });
   await Store.set('session:current', email, true);
   STATE.loginTab='signin';
-  STATE.screen='empHome';
-  render();
+  await enterEmpHome();
 }
 async function submitSignIn(){
   const email=val('siEmail').toLowerCase(), pw=val('siPass');
@@ -1139,8 +1204,19 @@ async function finishSignIn(account, email){
   STATE.user = { name:account.name, id:account.id, dept:account.department, email:account.email||email };
   await restoreProgress();
   await Store.set('session:current', email, true);
+  await enterEmpHome();
+}
+async function enterEmpHome(){
   STATE.screen='empHome';
   render();
+  await loadMyHistory();
+  if(STATE.screen==='empHome') render();
+}
+async function loadMyHistory(){
+  try{
+    const all = await fetchAllResults();
+    STATE.myHistory = all.filter(r=>String(r.id)===String(STATE.user.id));
+  }catch(e){ STATE.myHistory = []; }
 }
 async function tryAutoLogin(){
   try{
@@ -1156,6 +1232,7 @@ async function tryAutoLogin(){
       }
     }
   }catch(e){ /* no active session */ }
+  if(STATE.screen==='empHome') await loadMyHistory();
 }
 async function restoreProgress(){
   STATE.slideIdx=0; STATE.visited=[0]; STATE.examAnswers=new Array(EXAM.length).fill(null); STATE.examResult=null; STATE.lastCertId=null;
@@ -1189,6 +1266,13 @@ function renderEmpHome(){
   const finished = STATE.visited.includes(TOTAL_SLIDES-1) || done>=TOTAL_SLIDES;
   const passed = STATE.examResult && STATE.examResult.passed;
   const courseBtnLabel = p===0? t('startCourse') : (finished? t('reviewCourse') : t('continueCourse'));
+
+  const history = (STATE.myHistory||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const attempts = history.length;
+  const bestScore = attempts? Math.max(...history.map(r=>r.percent)) : null;
+  const latestCert = history.find(r=>r.certId);
+  const certValidUntilStr = latestCert? certValidUntil(latestCert.date) : null;
+
   return `
   <div class="dash-head">
     <div class="whoami">
@@ -1202,6 +1286,12 @@ function renderEmpHome(){
       <div class="ring" style="background:conic-gradient(var(--teal) ${p*3.6}deg, #e6ecee 0deg)"><div class="hole">${p}%</div></div>
       <div class="ring-label"><b>${t('yourProgress')}</b><span>${done}/${TOTAL_SLIDES} ${t('modulesLabel')}</span></div>
     </div>
+  </div>
+
+  <div class="mystat-grid">
+    <div class="stat-card glass-card"><div class="top"><span>${t('myAttempts')}</span><div class="ic">${ICONS.book}</div></div><b class="num">${attempts}</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('myBestScore')}</span><div class="ic">${ICONS.target}</div></div><b class="num">${bestScore!==null? bestScore+'%':'—'}</b></div>
+    <div class="stat-card glass-card"><div class="top"><span>${t('myCertStatus')}</span><div class="ic">${ICONS.award}</div></div><b class="num" style="font-size:14px;">${latestCert? t('myCertValid')+' '+certValidUntilStr : t('myCertNone')}</b></div>
   </div>
 
   <div class="course-hero" style="--cover-img:url('${SLIDES[0]}')">
@@ -1228,8 +1318,18 @@ function renderEmpHome(){
     <div class="cta-card ${passed?'':'locked'}">
       <h4>${ic('award')} ${t('certCard')}</h4>
       <p>${passed? t('certDescReady') : t('certDescLocked')}</p>
-      <button class="btn ${passed?'btn-gold':'btn-ghost'}" ${passed?'':'disabled'} onclick="showCertificate()">${ic(passed?'award':'lock')} ${passed? t('viewCert') : t('locked')}</button>
+      <button class="btn ${passed?'btn-gold':'btn-ghost'}" ${passed?'':'disabled'} onclick="goToEvaluationOrCert()">${ic(passed?'award':'lock')} ${passed? t('viewCert') : t('locked')}</button>
     </div>
+  </div>
+
+  <div class="glass-card panel-inner">
+    <div class="panel-head"><h3>${ic('chart')} ${t('myHistoryTitle')}</h3></div>
+    <table class="mini-table">
+      <thead><tr><th>${t('colDate')}</th><th>${t('colScore')}</th><th>${t('colStatus')}</th><th>${t('colCert')}</th></tr></thead>
+      <tbody>
+        ${history.length? history.map(r=>`<tr><td class="num">${r.date}</td><td class="num">${r.percent}%</td><td><span class="tag ${r.passed?'pass':'fail'}">${r.passed?t('passTag'):t('failTag')}</span></td><td class="num">${r.certId||'—'}</td></tr>`).join('') : `<tr><td colspan="4"><div class="empty-state">${t('myHistoryNone')}</div></td></tr>`}
+      </tbody>
+    </table>
   </div>`;
 }
 
@@ -1333,6 +1433,7 @@ function examPrev(){ if(STATE.examIdx>0){ STATE.examIdx--; render(); } }
 function examNext(){ if(STATE.examIdx<EXAM.length-1){ STATE.examIdx++; render(); } }
 function jumpTo(qi){ STATE.examIdx=qi; render(); }
 function submitExam(){
+  STATE.evalSubmittedForCert = false;
   let correct=0;
   const answerSheet = EXAM.map((q,i)=>{
     const d = q.en; // store canonical English snapshot so admins can read it regardless of the employee's language
@@ -1368,10 +1469,53 @@ function renderExamResult(){
     <span class="status-badge ${r.passed?'pass':'fail'}">${ic(r.passed?'check':'x')} ${r.passed? t('resultPassTitle') : t('resultFailTitle')}</span>
     <p style="color:var(--muted);margin-top:16px;">${t('resultDesc')} <b>${r.percent}%</b> (${r.correct}/${r.total}) — ${LANG==='ar'?'الحد الأدنى للنجاح':'passing score'} ${PASS_PERCENT}%</p>
     <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
-      ${r.passed? `<button class="btn btn-gold" onclick="showCertificate()">${ic('award')} ${t('getCertificate')}</button>` : `<button class="btn btn-primary" onclick="startExam()">${ic('refresh')} ${t('tryAgain')}</button>`}
+      ${r.passed? `<button class="btn btn-gold" onclick="goToEvaluationOrCert()">${ic('award')} ${t('getCertificate')}</button>` : `<button class="btn btn-primary" onclick="startExam()">${ic('refresh')} ${t('tryAgain')}</button>`}
       <button class="btn btn-ghost" onclick="goHome()">${ic('back')} ${t('backToCourse')}</button>
     </div>
   </div>`;
+}
+
+/* ============================= TRAINING EVALUATION SCREEN ============================= */
+function goToEvaluationOrCert(){
+  if(STATE.evalSubmittedForCert){ showCertificate(); return; }
+  STATE.evalAnswers = {};
+  STATE.screen='evaluation';
+  render();
+}
+function renderEvaluation(){
+  return `
+  <div class="exam-card">
+    <h2 style="margin:0 0 4px;font-size:19px;">${ic('award')} ${t('evalTitle')}</h2>
+    <p style="color:var(--muted);font-size:13px;margin:0 0 22px;">${t('evalSub')}</p>
+    ${EVAL_QUESTIONS.map((q,i)=>`
+      <div class="eval-q">
+        <div class="eval-q-text">${i+1}. ${escapeHtml(q[LANG]||q.en)}</div>
+        <div class="eval-scale">
+          ${[1,2,3,4,5].map(v=>`<button class="eval-dot ${STATE.evalAnswers[q.key]===v?'sel':''}" onclick="setEvalRating('${q.key}',${v})">${v}</button>`).join('')}
+        </div>
+        <div class="eval-scale-labels"><span>${t('evalDisagree')}</span><span>${t('evalAgree')}</span></div>
+      </div>`).join('')}
+    <label>${t('evalCommentsLbl')}</label>
+    <textarea id="evalComments" rows="3" placeholder="${t('evalCommentsPh')}"></textarea>
+    <div class="err-text" id="evalErr"></div>
+    <button class="btn btn-gold btn-block" style="margin-top:14px" onclick="submitEvaluation()">${ic('check')} ${t('evalSubmit')}</button>
+  </div>`;
+}
+function setEvalRating(key,v){ STATE.evalAnswers[key]=v; render(); }
+async function submitEvaluation(){
+  const err = document.getElementById('evalErr');
+  const missing = EVAL_QUESTIONS.some(q=> !STATE.evalAnswers[q.key]);
+  if(missing){ err.textContent = t('errFillFields'); return; }
+  const comments = (document.getElementById('evalComments')||{}).value || '';
+  const rec = {
+    id:STATE.user.id, name:STATE.user.name, department:STATE.user.dept,
+    date:fmtDate(), certId: STATE.lastCertId || '',
+    ratings: Object.assign({}, STATE.evalAnswers), comments
+  };
+  try{ await Store.set('eval:'+STATE.user.id+':'+Date.now(), JSON.stringify(rec), true); }catch(e){}
+  postToSheet('evaluation', rec);
+  STATE.evalSubmittedForCert = true;
+  showCertificate();
 }
 
 /* ============================= RENDER: CERTIFICATE ============================= */
@@ -1524,6 +1668,7 @@ function downloadCertForRecord(certIdSafe){
 async function loadAdminData(){
   STATE.adminData = await fetchAllResults();
   STATE.adminEmployees = await fetchAllEmployees();
+  STATE.adminEvaluations = await fetchAllEvaluations();
   await loadHiddenIds();
   STATE.lastSyncAt = new Date();
   if(STATE.screen==='adminDash'){ render(); }
@@ -1614,6 +1759,19 @@ function computeActivity(){
   return all.concat(regs).filter(x=>x.date).sort((a,b)=> String(b.date).localeCompare(String(a.date))).slice(0,15);
 }
 function scoreColor(p){ return p>=85? '#1E8E5A' : p>=70? '#C9A227' : '#C0392B'; }
+function computeEvalSummary(){
+  const evals = STATE.adminEvaluations||[];
+  const n = evals.length;
+  const perQ = {};
+  EVAL_QUESTIONS.forEach(q=>{
+    const vals = evals.map(e=> e.ratings && e.ratings[q.key]).filter(v=>v>0 && !isNaN(v));
+    perQ[q.key] = { label:q[LANG]||q.en, avg: vals.length? +(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2) : 0, n: vals.length };
+  });
+  const overallVals = evals.map(e=> e.ratings && e.ratings.overall).filter(v=>v>0 && !isNaN(v));
+  const overallAvg = overallVals.length? +(overallVals.reduce((a,b)=>a+b,0)/overallVals.length).toFixed(2) : 0;
+  const comments = evals.filter(e=>e.comments && e.comments.trim()).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,5);
+  return { n, perQ, overallAvg, comments };
+}
 
 /* ---- filters ---- */
 function filteredAdminData(){
@@ -1637,6 +1795,7 @@ function renderAdminDash(){
   const leaderboard = computeLeaderboard();
   const expiring = computeExpiring();
   const activity = computeActivity();
+  const evalSummary = computeEvalSummary();
   const data = filteredAdminData();
   const hiddenCount = STATE.hiddenIds.length;
 
@@ -1749,6 +1908,26 @@ function renderAdminDash(){
         </tbody>
       </table>
     </div>
+  </div>
+
+  <div class="glass-card panel-inner">
+    <div class="panel-head"><h3>${ic('award')} ${t('evalSummaryTitle')}</h3>${evalSummary.n? `<span style="font-size:11.5px;color:var(--muted);">${evalSummary.n}</span>`:''}</div>
+    ${evalSummary.n? `
+      <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div class="num" style="font-size:30px;font-weight:800;color:var(--navy);">${evalSummary.overallAvg}/5</div>
+          <span style="font-size:11px;color:var(--muted);">${t('evalAvgOverall')}</span>
+        </div>
+        <div style="flex:1;min-width:220px;">
+          ${EVAL_QUESTIONS.map(q=>{
+            const d = evalSummary.perQ[q.key];
+            return `<div class="bar-row"><span>${escapeHtml(d.label)}</span><div class="track"><div class="fill" style="width:${(d.avg/5)*100}%"></div></div><span class="num">${d.avg}</span></div>`;
+          }).join('')}
+        </div>
+      </div>
+      <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:16px 0 8px;">${t('evalRecentComments')}</h4>
+      ${evalSummary.comments.length? evalSummary.comments.map(c=>`<div class="comment-card">${escapeHtml(c.comments)}<div class="meta">${escapeHtml(c.name)} &middot; ${escapeHtml(deptLabelOf(c.department))} &middot; ${c.date}</div></div>`).join('') : `<div class="empty-state">${t('evalRecentComments')}: —</div>`}
+    ` : `<div class="empty-state">${t('evalNoData')}</div>`}
   </div>
 
   <div class="glass-card panel-inner">
@@ -2039,7 +2218,10 @@ async function submitGasSettings(){
 /* ============================= NAV / GLOBAL ============================= */
 function goHome(){
   stopAutoplay();
-  if(STATE.role==='employee') STATE.screen='empHome';
+  if(STATE.role==='employee'){
+    STATE.screen='empHome';
+    loadMyHistory().then(()=>{ if(STATE.screen==='empHome') render(); });
+  }
   else if(STATE.role==='admin') STATE.screen='adminDash';
   else STATE.screen='login';
   render();
@@ -2099,6 +2281,7 @@ function render(){
     case 'slideshow': html = renderSlideshow(); break;
     case 'exam': html = renderExam(); break;
     case 'examResult': html = renderExamResult(); break;
+    case 'evaluation': html = renderEvaluation(); break;
     case 'cert': html = renderCertificate(); break;
     case 'adminDash': html = renderAdminDash(); break;
     case 'verify': html = '<div class="verify-card"><div class="empty-state">...</div></div>'; break;
