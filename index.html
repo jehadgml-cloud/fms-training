@@ -26,6 +26,7 @@
     --shadow: 0 8px 28px rgba(11,53,80,0.10);
   }
   *{box-sizing:border-box;}
+  svg{ width:1em; height:1em; display:inline-block; vertical-align:-0.125em; flex:none; }
   html,body{margin:0;padding:0;height:100%;}
   body{
     background:var(--bg); color:var(--ink);
@@ -1644,7 +1645,7 @@ function goToEvaluationOrCert(){
 function renderEvaluation(){
   return `
   <div class="exam-card">
-    <h2 style="margin:0 0 4px;font-size:19px;">${ic('award')} ${t('evalTitle')}</h2>
+    <h2 style="margin:0 0 4px;font-size:19px;">${t('evalTitle')}</h2>
     <p style="color:var(--muted);font-size:13px;margin:0 0 22px;">${t('evalSub')}</p>
     ${EVAL_QUESTIONS.map((q,i)=>`
       <div class="eval-q">
