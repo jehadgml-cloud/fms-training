@@ -314,12 +314,7 @@
       grid-template-columns: 1fr; 
       min-height: 0; 
     }
-    .login-panel-l { 
-      min-height: 300px; 
-      padding: 36px 30px; 
-      justify-content: flex-start; 
-      gap: 24px; 
-    }
+    
     .polaroid-stack { 
       display: none; 
     }
@@ -342,15 +337,7 @@
     overflow: hidden;
   }
   
-  .hex-field { 
-    position: absolute; 
-    inset: 0; 
-    opacity: .05; 
-    background-image:
-      linear-gradient(30deg, transparent 48%, #fff 49%, #fff 51%, transparent 52%),
-      linear-gradient(-30deg, transparent 48%, #fff 49%, #fff 51%, transparent 52%);
-    background-size: 38px 66px; 
-  }
+  
   
   .login-mark { 
     width: 60px; 
@@ -2372,6 +2359,191 @@
     .grid2 { grid-template-columns: 1fr; }
     .polaroid-stack { display: none; }
   }
+
+
+/* ============================= NEW PREMIUM UI OVERRIDE ============================= */
+body {
+  background: var(--navy-dark);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(14, 127, 118, 0.15), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(192, 154, 31, 0.1), transparent 25%);
+  background-attachment: fixed;
+}
+.login-wrapper {
+  position: relative;
+  min-height: calc(100vh - 140px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+.ambient-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.blob {
+  position: absolute;
+  filter: blur(100px);
+  opacity: 0.5;
+  animation: float 20s infinite ease-in-out alternate;
+}
+.blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(14, 127, 118, 0.3); }
+.blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: rgba(192, 154, 31, 0.2); animation-delay: -5s; }
+.blob-3 { top: 40%; left: 40%; width: 40vw; height: 40vw; background: rgba(11, 53, 80, 0.6); animation-delay: -10s; }
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(10%, 10%) scale(1.1); }
+}
+
+.login-glass-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 500px;
+  margin: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.login-glass-header {
+  padding: 40px 40px 20px;
+  background: rgba(240, 244, 246, 0.5);
+  border-bottom: 1px solid rgba(11, 53, 80, 0.05);
+  text-align: center;
+}
+.login-glass-body {
+  padding: 30px 40px 40px;
+}
+
+/* Cinematic Viewer */
+body:has(.cinematic-viewer) {
+  overflow: hidden;
+}
+body:has(.cinematic-viewer) .topbar, body:has(.cinematic-viewer) .foot {
+  display: none !important;
+}
+
+.cinematic-viewer { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 99999 !important; background: linear-gradient(135deg, #071520 0%, #000 100%); display: flex; flex-direction: column; overflow: hidden !important; }
+.cinematic-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, rgba(14,127,118,0.1) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+.cinematic-stage { height: calc(100vh - 120px) !important; width: 100%; display: flex; justify-content: center; align-items: center; padding: 60px 20px 80px; position: relative; margin-top: 50px; }
+.cinematic-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+}
+.glass-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+  pointer-events: none;
+}
+.glass-top > div {
+  pointer-events: auto;
+}
+.glass-controls {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30,35,45, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 12px 24px;
+  border-radius: 60px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.glass-controls .center-controls {
+  display: flex;
+  gap: 12px;
+}
+.progressbar-mini {
+  position: absolute;
+  top: 0px; left: 20px; right: 20px;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+.progressbar-mini div {
+  height: 100%;
+  background: var(--teal-light);
+  transition: width 0.3s;
+}
+.glass-btn {
+  background: transparent !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
+}
+.glass-btn:hover {
+  background: rgba(255,255,255,0.1) !important;
+}
+.glass-play-btn {
+  background: var(--teal) !important;
+  color: #fff !important;
+  border: none !important;
+  width: 52px !important;
+  height: 52px !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+.glass-play-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(14,127,118,0.6);
+}
+.close-btn {
+  color: rgba(255,255,255,0.6) !important;
+}
+.close-btn:hover {
+  color: #fff !important;
+  background: rgba(255,0,0,0.4) !important;
+}
+.right-actions {
+  position: absolute;
+  right: -180px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.right-actions .btn {
+  padding: 14px 24px;
+  font-size: 15px;
+  border-radius: 30px;
+}
+.bounce-in {
+  animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes bounceIn {
+  0% { transform: translateY(-50%) scale(0.8); opacity: 0; }
+  100% { transform: translateY(-50%) scale(1); opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .cinematic-stage { padding: 80px 20px 100px; }
+  .right-actions { right: auto; left: 50%; transform: translateX(-50%); top: -60px; }
+}
+
 </style>
 </head>
 <body>
