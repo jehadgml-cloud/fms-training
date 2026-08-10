@@ -79,53 +79,67 @@ async function saveEmployee(rec){
   postToSheet('employee', rec);
 }
 async function fetchAllResults(){
+  let combined = [];
   if(STATE.gasUrl){
     try{
       const res = await fetch(STATE.gasUrl+'?action=results&_=' + Date.now());
       if(res.ok){
-        const rows = await res.json();
         STATE.gasStatus='ok';
-        return rows.map(row=>({
+        const rows = await res.json();
+        const gasRes = rows.map(row=>({
           id: row['Employee ID'], name: row['Name'], department: row['Department'],
           score: Number(row['Score']), total: Number(row['Total']), percent: Number(row['Percent']),
           passed: String(row['Status']).toLowerCase()==='pass', date: row['Date'], certId: row['Certificate ID']||'',
           certLink: row['Certificate Link']||'',
           answers: safeParseJson(row['Answers JSON'])
-        })).sort((a,b)=> String(b.date).localeCompare(String(a.date)));
+        }));
+        combined = combined.concat(gasRes);
       }
     }catch(e){ console.error('Sheet fetch failed, falling back to local cache', e); STATE.gasStatus='error'; }
   }
-  return fetchLocalResults();
+  const loc = await fetchLocalResults();
+  combined = combined.concat(loc);
+  const unique = [];
+  const seen = new Set();
+  for(const r of combined){
+    const key = r.id + '|' + (r.date || '');
+    if(!seen.has(key)){ seen.add(key); unique.push(r); }
+  }
+  return unique.sort((a,b)=> String(b.date).localeCompare(String(a.date)));
 }
 async function fetchAllEmployees(){
+  let combined = [];
   if(STATE.gasUrl){
     try{
       const res = await fetch(STATE.gasUrl+'?action=employees&_=' + Date.now());
       if(res.ok){
         const rows = await res.json();
-        return rows.map(row=>({
+        const gasE = rows.map(row=>({
           id: row['Employee ID'], name: row['Name'], department: row['Department'],
           email: row['Email']||'', createdAt: row['Registered At']||''
         }));
+        combined = combined.concat(gasE);
       }
-    }catch(e){ console.error('Sheet employee fetch failed, falling back to local cache', e); }
+    }catch(e){ console.error('Sheet employee fetch failed', e); }
   }
-  const out=[];
   try{
     const list = await Store.list('emp:', true);
     for(const k of (list.keys||[])){
-      try{ const r=await Store.get(k, true); if(r && r.value) out.push(JSON.parse(r.value)); }catch(e){}
+      try{ const r=await Store.get(k, true); if(r && r.value) combined.push(JSON.parse(r.value)); }catch(e){}
     }
-  }catch(e){ console.error(e); }
-  return out;
+  }catch(e){}
+  const unique = []; const seen = new Set();
+  for(const r of combined){ if(!seen.has(r.id)){ seen.add(r.id); unique.push(r); } }
+  return unique;
 }
 async function fetchAllEvaluations(){
+  let combined = [];
   if(STATE.gasUrl){
     try{
       const res = await fetch(STATE.gasUrl+'?action=evaluations&_=' + Date.now());
       if(res.ok){
         const rows = await res.json();
-        return rows.map(row=>({
+        const gasE = rows.map(row=>({
           id: row['Employee ID'], name: row['Name'], department: row['Department'], date: row['Date'],
           certId: row['Certificate ID']||'', comments: row['Comments']||'',
           ratings: {
@@ -133,17 +147,19 @@ async function fetchAllEvaluations(){
             examFair:Number(row['Exam Fair']), platform:Number(row['Platform']), overall:Number(row['Overall'])
           }
         }));
+        combined = combined.concat(gasE);
       }
-    }catch(e){ console.error('Sheet evaluation fetch failed, falling back to local cache', e); }
+    }catch(e){ console.error('Sheet evaluation fetch failed', e); }
   }
-  const out=[];
   try{
     const list = await Store.list('eval:', true);
     for(const k of (list.keys||[])){
-      try{ const r=await Store.get(k, true); if(r && r.value) out.push(JSON.parse(r.value)); }catch(e){}
+      try{ const r=await Store.get(k, true); if(r && r.value) combined.push(JSON.parse(r.value)); }catch(e){}
     }
-  }catch(e){ console.error(e); }
-  return out;
+  }catch(e){}
+  const unique = []; const seen = new Set();
+  for(const r of combined){ const key = r.id+'|'+(r.date||''); if(!seen.has(key)){ seen.add(key); unique.push(r); } }
+  return unique;
 }
 async function loadHiddenIds(){
   try{ const r = await Store.get('admin:hidden', true); STATE.hiddenIds = r&&r.value? JSON.parse(r.value) : []; }catch(e){ STATE.hiddenIds=[]; }
@@ -700,13 +716,13 @@ function selectAnswer(oi){ STATE.examAnswers[STATE.examIdx]=oi; render(); }
 function examPrev(){ if(STATE.examIdx>0){ STATE.examIdx--; render(); } }
 function examNext(){ if(STATE.examIdx<EXAM.length-1){ STATE.examIdx++; render(); } }
 function jumpTo(qi){ STATE.examIdx=qi; render(); }
-function submitExam(){
+async function submitExam(){
   let rec;
   try{
     STATE.evalSubmittedForCert = false;
     let correct=0;
     const answerSheet = EXAM.map((q,i)=>{
-      const d = q.en; // store canonical English snapshot so admins can read it regardless of the employee's language
+      const d = q.en;
       const sel = STATE.examAnswers[i];
       const isCorrect = sel===q.c;
       if(isCorrect) correct++;
@@ -734,8 +750,8 @@ function submitExam(){
     showDebugAlert('RENDER', err);
     return;
   }
-  try{ saveResult(rec); }catch(e){ console.error('saveResult failed', e); }
-  try{ saveProgress(); }catch(e){ console.error('saveProgress failed', e); }
+  try{ await saveResult(rec); }catch(e){ console.error('saveResult failed', e); }
+  try{ await saveProgress(); }catch(e){ console.error('saveProgress failed', e); }
   loadMyHistory().then(()=>{ if(STATE.screen==='empHome') render(); }).catch(()=>{});
 }
 function showDebugAlert(phase, err){
